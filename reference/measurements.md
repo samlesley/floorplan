@@ -120,6 +120,12 @@ As given:
 
 How it was used: the window recess (and the window centred in it) is now centred on the window wall, between the side wall and the chimney breast. The futon still runs up to the wall, so its end now sits partly across the recess opening, with the low bookshelf inside the recess beside it. The distance from the futon wall to the recess would confirm this.
 
+## 2026-11-08: lamps and the cat
+
+Lamps seen in the photos, added with estimated sizes and positions: the pleated table lamp on the lounge side table, the stained glass lamp on the dining table, the brass wall uplighter on the lounge picture wall, the green swing-arm wall lamp over the futon, the white desk lamp on the shelf above the desk, the orange wall light above the bedside table in bedroom 1, the blue clip-on lamp on top of the bookcase, and the globe lamp on the hall side table.
+
+The calico cat (seen in the bedroom 2 photo) is modelled curled up asleep on the lounge sofa, at my choice of spot.
+
 ## Still to measure
 
 Defaults, plan-scaled figures or photo estimates are in use for all of these.

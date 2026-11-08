@@ -100,6 +100,10 @@
     <label class="row"><input type="checkbox" id="showFurnLbl"> Furniture names</label>
     <label class="row"><input type="checkbox" id="showWallLbl" checked> Wall numbers and lengths (plan)</label>
     <label class="row"><input type="checkbox" id="hq" checked> High quality lighting (turn off if it runs slowly)</label>
+    <div class="seg" role="group" aria-label="Time of day" style="margin:6px 0 4px">
+      <button id="tday" class="on">Day</button>
+      <button id="teve">Evening, lamps on</button>
+    </div>
 
     <h2>Rooms</h2>
     <ul id="rooms"></ul>
@@ -182,6 +186,11 @@ const walkCam = new THREE.PerspectiveCamera(70, 1, 0.03, 200);
 walkCam.rotation.order = 'YXZ';
 const walk = { x: 0, y: 0, yaw: 0, pitch: 0, keys: new Set(), eye: 1600, r: 200, started: false };
 let colliders = [], ceilings = [];
+let evening = false; const lampOff = new Set(); // lamps switched off, by furniture index
+try { evening = localStorage.getItem('flat-evening') === '1'; } catch (e) {}
+const isLight = f => f && (f.kind === 'pendant' || f.kind === 'lamp');
+let frames = 3; // frames still to draw; the view is only redrawn when something changes
+const invalidate = (n = 3) => { frames = Math.max(frames, n); };
 let orig = [], drag = null, removed = new Set(); // removed: indexes of pieces taken out in this browser // starting positions from flat.json, and the piece being dragged
 const ortho = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 300);
 ortho.up.set(0, 0, -1);
@@ -194,8 +203,11 @@ scene.environmentIntensity = 0.35;
 const composer = new EffectComposer(renderer);
 const renderPass = new RenderPass(scene, persp);
 const gtao = new GTAOPass(scene, persp, 2, 2);
-gtao.updateGtaoMaterial({ radius: 0.45, distanceExponent: 1.4, thickness: 0.8, scale: 1.1, samples: 16 });
-gtao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: 16 });
+gtao.updateGtaoMaterial({ radius: 0.45, distanceExponent: 1.4, thickness: 0.8, scale: 1.1, samples: 8 });
+gtao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 5, rings: 2, samples: 8 });
+// work the occlusion out at half resolution: a quarter of the pixels, then blended over the full image
+const gtaoSetSize = gtao.setSize.bind(gtao);
+gtao.setSize = (w, h) => gtaoSetSize(Math.max(1, Math.ceil(w / 2)), Math.max(1, Math.ceil(h / 2)));
 gtao.blendIntensity = 0.9;
 composer.addPass(renderPass); composer.addPass(gtao); composer.addPass(new OutputPass());
 // leave glass and other see-through things out of the occlusion, so windows stay clear
@@ -332,6 +344,13 @@ const carpetTex = base => canvasTex('carpet' + base, 256, 256, (g, w) => {
   const r = rng(11); g.fillStyle = base; g.fillRect(0, 0, w, w);
   for (let k = 0; k < 9000; k++) { const v = r() < 0.5 ? 0 : 255; g.fillStyle = `rgba(${v},${v},${v},${r() * 0.06})`; g.fillRect(r() * w, r() * w, 1.5, 1.5); }
 });
+// calico coat: white with orange and black patches
+const calicoTex = () => canvasTex('calico', 256, 128, (g, w, h) => {
+  const r = rng(41); g.fillStyle = '#f4efe6'; g.fillRect(0, 0, w, h);
+  const blob = (col, x, y, s) => { g.fillStyle = col; for (let k = 0; k < 7; k++) { g.beginPath(); g.ellipse(x + (r() - 0.5) * s, y + (r() - 0.5) * s * 0.6, s * (0.3 + r() * 0.4), s * (0.2 + r() * 0.3), r() * 3, 0, 7); g.fill(); } };
+  blob('#d9822b', 40, 40, 60); blob('#2b2420', 120, 50, 55); blob('#d9822b', 200, 35, 50); blob('#2b2420', 230, 80, 35); blob('#c9762a', 90, 85, 35); blob('#2b2420', 20, 95, 30);
+  for (let k = 0; k < 2500; k++) { g.fillStyle = `rgba(0,0,0,${r() * 0.05})`; g.fillRect(r() * w, r() * h, 1, 2); }
+});
 const floorMats = new Map();
 function floorMaterial(r) {
   const type = r.floor || 'plain', base = r.floorColour || floorColours[type] || '#bdb7ad';
@@ -411,6 +430,7 @@ function clear(group) {
 }
 
 function build() {
+  invalidate();
   clear(building); clear(furnGroup);
   roomLabels = []; wallLabels = []; furnLabels = []; colliders = []; ceilings = [];
   if (selBox) { scene.remove(selBox); selBox = null; }
@@ -521,7 +541,10 @@ function build() {
     const [x0, y0] = o.from || [], [x1, y1] = o.to || [], L = Math.hypot(x1 - x0, y1 - y0), t = o.depth || 1000, h = o.height || 2000;
     if (!(L > 0)) continue;
     const geo = worldUV(new THREE.BoxGeometry(L * S, h * S, t * S), L * S, h * S, t * S);
-    const m = new THREE.Mesh(geo, mat(o.colour || '#6f7f55', { roughness: 0.95, surface: o.type === 'building' ? 'sandstone' : 'leaves' }));
+    const outMat = evening
+      ? new THREE.MeshBasicMaterial({ color: new THREE.Color(o.colour || '#6f7f55').multiplyScalar(0.12), map: surfaceTexture(o.type === 'building' ? 'sandstone' : 'leaves') })
+      : mat(o.colour || '#6f7f55', { roughness: 0.95, surface: o.type === 'building' ? 'sandstone' : 'leaves' });
+    const m = new THREE.Mesh(geo, outMat);
     m.position.set((x0 + x1) / 2 * S, ((o.z || 0) + h / 2) * S, (y0 + y1) / 2 * S);
     m.rotation.y = -Math.atan2(y1 - y0, x1 - x0);
     m.userData.outside = true; m.visible = mode === 'walk';
@@ -530,7 +553,7 @@ function build() {
 
   // ground slab under everything
   const gw = (bbox.maxX - bbox.minX) * S, gd = (bbox.maxY - bbox.minY) * S;
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(gw + 60, gd + 60), new THREE.MeshStandardMaterial({ color: mode === 'walk' ? '#8a8c84' : '#dedad3', roughness: 1 }));
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(gw + 60, gd + 60), evening && mode === 'walk' ? new THREE.MeshBasicMaterial({ color: '#16181b' }) : new THREE.MeshStandardMaterial({ color: mode === 'walk' ? '#8a8c84' : '#dedad3', roughness: 1 }));
   if (mode === 'walk') ground.position.y = -0.9;
   ground.rotation.x = -Math.PI / 2;
   ground.position.set((bbox.minX + bbox.maxX) / 2 * S, mode === 'walk' ? -0.9 : -0.001, (bbox.minY + bbox.maxY) / 2 * S);
@@ -694,7 +717,16 @@ function addFurniture(f, hShown = f.h) {
   };
   if (f.kind === 'radiator') { g.add(radiator(f)); }
   else if (!f.model && shapes[f.kind]) {
-    g.add(shapes[f.kind](f, (c, o = {}) => mat(c, cand ? { ...o, transparent: true, opacity: 0.8 } : o)));
+    const idx = flat.furniture.indexOf(f), lit = evening && isLight(f) && !lampOff.has(idx);
+    const fs = hShown < f.h ? { ...f, h: hShown } : f; // cut down to the wall height, like plain boxes
+    const shape = shapes[f.kind](fs, (c, o = {}) => mat(c, cand ? { ...o, transparent: true, opacity: 0.8 } : o), { lit });
+    g.add(shape);
+    if (lit && shape.userData.lightAt) {
+      const [lx, ly, lz] = shape.userData.lightAt;
+      const L = new THREE.PointLight(f.lightColour || '#ffdcb0', f.lightIntensity ?? (f.kind === 'pendant' ? 5 : 2.5), 7, 2);
+      L.position.set(lx * S, ly * S, lz * S);
+      g.add(L);
+    }
     if (cand) { const geo = new THREE.BoxGeometry(f.w * S, f.h * S, f.d * S); const l = new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({ color: '#c2410c' })); l.position.y = f.h * S / 2; g.add(l); }
   }
   else if (f.model) {
@@ -705,8 +737,8 @@ function addFurniture(f, hShown = f.h) {
       obj.scale.set(f.w * S / sz.x, f.h * S / sz.y, f.d * S / sz.z);
       const b2 = new THREE.Box3().setFromObject(obj), c = b2.getCenter(new THREE.Vector3());
       obj.position.set(-c.x, -b2.min.y, -c.z);
-      g.add(obj);
-    }, undefined, () => g.add(box()));
+      g.add(obj); invalidate();
+    }, undefined, () => { g.add(box()); invalidate(); });
   } else g.add(box());
   const div = document.createElement('div');
   div.className = 'lbl-furn';
@@ -728,6 +760,12 @@ function part(g, material, x0, x1, y0, y1, z0, z1, round = 0) {
   g.add(b);
 }
 const legsMat = M => M('#3a2a1e', { roughness: 0.6 });
+// a lampshade: glows when lit, plain fabric or glass when not
+const shadeMat = (colour, lit, extra = {}) => new THREE.MeshStandardMaterial({ color: colour, emissive: colour, emissiveIntensity: lit ? 1.25 : 0.12, roughness: 0.85, side: THREE.DoubleSide, ...extra });
+const cyl = (g, material, rTop, rBot, h, y, x = 0, z = 0, open = false, seg = 28) => {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(rTop * S, rBot * S, h * S, seg, 1, open), material);
+  m.position.set(x * S, y * S, z * S); m.castShadow = !open; m.receiveShadow = true; g.add(m); return m;
+};
 const shapes = {
   sofa(f, M) { // also armchairs and benches
     const g = new THREE.Group(), w = f.w / 2, d = f.d / 2, h = f.h, sf = f.material || 'fabric', up = M(f.colour || '#8a8f8a', { roughness: 0.95, surface: sf });
@@ -787,9 +825,10 @@ const shapes = {
     part(g, black, -w * 0.35, w * 0.35, 0, 25, -f.d / 2, f.d / 2);         // foot
     return g;
   },
-  pendant(f, M) { // light: shade with its bottom at z, cord up to the ceiling, optional ceiling rose
+  pendant(f, M, ctx = {}) { // light: shade with its bottom at z, cord up to the ceiling, optional ceiling rose
     const g = new THREE.Group(), r = flat.rooms.find(r => r.id === f.room), top = (r ? ceiling(r) : 2700) - (f.z || 0);
-    const shade = new THREE.MeshStandardMaterial({ color: f.colour || '#f3ede0', emissive: f.colour || '#f3ede0', emissiveIntensity: 0.35, roughness: 0.9, side: THREE.DoubleSide });
+    const shade = shadeMat(f.colour || '#f3ede0', ctx.lit);
+    g.userData.lightAt = [0, f.h * 0.4, 0];
     const R = f.w / 2 * S, H = f.h * S;
     let m;
     if (f.style === 'drum') m = new THREE.Mesh(new THREE.CylinderGeometry(R, R, H, 40, 1, true), shade);
@@ -801,6 +840,58 @@ const shapes = {
     const cordH = top - f.h;
     if (cordH > 0) { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.004, cordH * S, 6), M('#3a3a3a')); c.position.y = (f.h + cordH / 2) * S; g.add(c); }
     if (f.rose) { const ro = new THREE.Mesh(new THREE.CylinderGeometry(f.rose / 2 * S, f.rose / 2.6 * S, 45 * S, 40), M('#f4f2ec', { roughness: 0.9 })); ro.position.y = (top - 22) * S; g.add(ro); }
+    return g;
+  },
+  lamp(f, M, ctx = {}) { // table, floor and wall lamps; f.w is the shade's width, f.h the overall height
+    const g = new THREE.Group(), h = f.h, R = f.w / 2, sh = shadeMat(f.colour || '#f1e6cf', ctx.lit), base = M(f.colour2 || '#d9d2c4', { roughness: 0.4 });
+    const brass = M('#b08a3e', { roughness: 0.3, metalness: 0.8 });
+    const st = f.style || 'table';
+    if (st === 'table') { // ceramic base, thin stem, pleated drum shade
+      cyl(g, base, R * 0.35, R * 0.45, h * 0.32, h * 0.16);
+      cyl(g, brass, 6, 6, h * 0.25, h * 0.44);
+      const s = cyl(g, sh, R * 0.62, R, h * 0.42, h * 0.77, 0, 0, true, 36);
+      s.geometry.dispose(); s.geometry = new THREE.CylinderGeometry(R * 0.62 * S, R * S, h * 0.42 * S, 36, 1, true);
+      g.userData.lightAt = [0, h * 0.72, 0];
+    } else if (st === 'tiffany') { // bronze base, coloured glass dome
+      cyl(g, brass, R * 0.4, R * 0.5, 25, 12); cyl(g, brass, 8, 8, h * 0.6, h * 0.3);
+      const d = new THREE.Mesh(new THREE.SphereGeometry(R * S, 28, 10, 0, Math.PI * 2, 0, Math.PI / 2), shadeMat(f.colour || '#d08a3a', ctx.lit, { roughness: 0.3 }));
+      d.scale.y = 0.75; d.position.y = h * 0.6 * S; g.add(d);
+      g.userData.lightAt = [0, h * 0.62, 0];
+    } else if (st === 'globe') { // round glass globe on a small base
+      cyl(g, base, R * 0.45, R * 0.55, h * 0.18, h * 0.09);
+      const b = new THREE.Mesh(new THREE.SphereGeometry(R * S, 28, 18), sh); b.position.y = (h - R) * S; g.add(b);
+      g.userData.lightAt = [0, h - R, 0];
+    } else if (st === 'wall') { // round wall light: a glowing disc standing off the wall (the back is at -d/2)
+      const d = cyl(g, sh, R, R, f.d * 0.6, h / 2, 0, -f.d / 2 + f.d * 0.4, false, 36); d.rotation.x = Math.PI / 2;
+      cyl(g, base, R * 0.85, R * 0.85, f.d * 0.4, h / 2, 0, -f.d / 2 + f.d * 0.2, false, 36).rotation.x = Math.PI / 2;
+      g.userData.lightAt = [0, h / 2, f.d / 2 + 80];
+    } else if (st === 'uplighter') { // brass half-cone on the wall, light thrown upwards
+      const c = cyl(g, brass, R, R * 0.35, h, h / 2, 0, -f.d / 2 + R, false, 24); c.scale.z = 0.6;
+      g.userData.lightAt = [0, h + 100, -f.d / 2 + 120];
+    } else if (st === 'swingarm') { // wall plate, arm out into the room, cone shade pointing down
+      part(g, base, -30, 30, h - 120, h, -f.d / 2, -f.d / 2 + 15);
+      part(g, base, -8, 8, h - 70, h - 54, -f.d / 2, f.d / 2 - R * 0.6);
+      cyl(g, sh, R * 0.45, R, R * 1.4, h - 62 - R * 0.7, 0, f.d / 2 - R, true, 24);
+      g.userData.lightAt = [0, h - 160, f.d / 2 - R];
+    } else { // anglepoise: weighted base, two arms, shade tipped forwards
+      cyl(g, base, 70, 80, 30, 15, 0, -f.d / 2 + 90);
+      const a1 = cyl(g, base, 7, 7, h * 0.55, h * 0.27, 0, -f.d / 2 + 90 + h * 0.08); a1.rotation.x = 0.3;
+      const a2 = cyl(g, base, 7, 7, f.d * 0.7, h * 0.55, 0, -f.d / 2 + 90 + f.d * 0.3); a2.rotation.x = Math.PI / 2 - 0.25;
+      const s = cyl(g, sh, R * 0.3, R, R * 1.2, h * 0.5, 0, f.d / 2 - R, true, 24); s.rotation.x = 0.6;
+      g.userData.lightAt = [0, h * 0.42, f.d / 2 - R];
+    }
+    return g;
+  },
+  cat(f, M) { // curled up asleep: a round body with the head tucked in and the tail wrapped round
+    const g = new THREE.Group(), w = f.w / 2, d = f.d / 2, h = f.h;
+    const coat = new THREE.MeshStandardMaterial({ map: calicoTex(), roughness: 1 });
+    const ell = (rx, ry, rz, x, y, z, m = coat) => { const e = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 20), m); e.scale.set(rx * S, ry * S, rz * S); e.position.set(x * S, y * S, z * S); e.castShadow = e.receiveShadow = true; g.add(e); return e; };
+    ell(w * 0.92, h * 0.5, d * 0.88, -w * 0.05, h * 0.5, -d * 0.05);              // body
+    const head = ell(w * 0.32, h * 0.36, d * 0.36, w * 0.45, h * 0.42, d * 0.42);  // head tucked against the body
+    head.rotation.y = -0.6;
+    for (const s of [-1, 1]) { const e = new THREE.Mesh(new THREE.ConeGeometry(28 * S, 55 * S, 10), coat); e.position.set((w * 0.45 + s * 45) * S, (h * 0.42 + h * 0.3) * S, (d * 0.42 - 25) * S); e.rotation.set(-0.35, 0, s * -0.4); g.add(e); }
+    const tail = new THREE.Mesh(new THREE.TorusGeometry(w * 0.72 * S, 30 * S, 10, 28, Math.PI * 0.9), M('#2b2420', { roughness: 1 }));
+    tail.rotation.x = Math.PI / 2; tail.rotation.z = 0.35; tail.position.set(-w * 0.05 * S, 40 * S, -d * 0.05 * S); tail.scale.y = d / w; g.add(tail);
     return g;
   },
   picture(f, M) { // framed picture or mirror on a wall: frame, then the picture or glass slightly proud
@@ -869,6 +960,7 @@ function renderLists(checks) {
 }
 
 function applyVisibility() {
+  invalidate();
   const showCand = $('showCand').checked;
   for (const g of furnGroup.children) {
     if (g.userData.f) {
@@ -886,6 +978,7 @@ function applyVisibility() {
 }
 
 function select(g) {
+  invalidate();
   if (selBox) { scene.remove(selBox); selBox = null; }
   selected = g;
   document.querySelectorAll('li[data-furn]').forEach(li => li.classList.remove('sel'));
@@ -909,10 +1002,12 @@ function select(g) {
     </dl>
     ${movable(f) ? `<div class="btns"><button class="btn" data-turn="-15">⟲ Turn 15°</button><button class="btn" data-turn="15">⟳ Turn 15°</button>${isMoved(idx) ? '<button class="btn" data-undo>Undo move</button>' : ''}</div>
     <p class="note" style="margin:8px 0 0">Drag it in Plan view to move it; R turns it.</p>` : ''}
+    ${isLight(f) ? (evening ? `<div class="btns"><button class="btn" data-lamp>${lampOff.has(idx) ? 'Turn on' : 'Turn off'}</button></div>` : '<p class="note" style="margin:8px 0 0">Choose "Evening, lamps on" to see it lit.</p>') : ''}
     ${removable(f) ? `<div class="btns"><button class="btn" data-remove>Remove</button></div>` : ''}`;
   info.hidden = false;
   info.querySelector('.close').onclick = () => select(null);
   info.querySelectorAll('[data-turn]').forEach(b => b.onclick = () => turnPiece(f, +b.dataset.turn));
+  const lb = info.querySelector('[data-lamp]'); if (lb) lb.onclick = () => { lampOff.has(idx) ? lampOff.delete(idx) : lampOff.add(idx); changed(f); };
   const rm = info.querySelector('[data-remove]'); if (rm) rm.onclick = () => removePiece(f);
   const u = info.querySelector('[data-undo]'); if (u) u.onclick = () => { Object.assign(f, orig[idx]); if (!orig[idx].rot) delete f.rot; changed(f); };
 }
@@ -1045,14 +1140,7 @@ function setMode(m) {
   $('vwalk').classList.toggle('on', m === 'walk');
   ctl3d.enabled = m === '3d';
   ctlPlan.enabled = m === 'plan';
-  sun.castShadow = m !== 'plan';
-  scene.background.set(m === 'walk' ? '#dfe6ea' : '#eceae6');
-  // indoors the ceilings block the sky, so light the rooms evenly instead
-  hemi.groundColor.set(m === 'walk' ? '#efe6d8' : '#8a8070');
-  hemi.intensity = m === 'walk' ? 1.2 : 1.6;
-  ambient.intensity = m === 'walk' ? 0.6 : 0;
-  scene.environmentIntensity = m === 'walk' ? 0.55 : 0.35;
-  sun.intensity = m === 'walk' ? 0.9 : 1.35;
+  applyLighting();
   $('wallh').disabled = m === 'walk';
   $('cross').hidden = $('pad').hidden = m !== 'walk';
   $('hint').textContent = m === '3d' ? 'Drag to orbit · right-drag to pan · scroll to zoom · click a piece for details'
@@ -1061,6 +1149,45 @@ function setMode(m) {
   if (m === 'walk' && !walk.started && bbox) { const h = flat.rooms.find(r => r.id === 'hall') || flat.rooms[0]; walkTo(h); walk.yaw = -Math.PI / 2; walk.started = true; }
   applyVisibility();
 }
+
+// daylight, or evening with the lamps doing the work
+function applyLighting() {
+  const w = mode === 'walk';
+  if (!evening) {
+    scene.background.set(w ? '#dfe6ea' : '#eceae6');
+    hemi.color.set('#fffaf2');
+    // indoors the ceilings block the sky, so light the rooms evenly instead
+    hemi.groundColor.set(w ? '#efe6d8' : '#8a8070');
+    hemi.intensity = w ? 1.2 : 1.6;
+    ambient.intensity = w ? 0.6 : 0;
+    scene.environmentIntensity = w ? 0.55 : 0.35;
+    sun.intensity = w ? 0.9 : 1.35;
+    renderer.toneMappingExposure = 1;
+  } else {
+    scene.background.set(w ? '#0d1520' : '#1c222c');
+    hemi.color.set('#3a4a66'); hemi.groundColor.set('#1a150f');
+    hemi.intensity = w ? 0.12 : 0.35;
+    ambient.intensity = w ? 0.04 : 0.08;
+    scene.environmentIntensity = w ? 0.05 : 0.12;
+    sun.intensity = 0;
+    renderer.toneMappingExposure = 1.15;
+  }
+  sun.castShadow = mode !== 'plan' && !evening;
+  // glass: clear by day, dark and slightly reflective at night
+  glassMat.color.set(evening ? '#06090d' : '#d9eaf2');
+  glassMat.opacity = evening ? 0.55 : 0.16;
+  $('tday').classList.toggle('on', !evening);
+  $('teve').classList.toggle('on', evening);
+  invalidate();
+}
+function setEvening(on) {
+  evening = on;
+  try { localStorage.setItem('flat-evening', on ? '1' : '0'); } catch (e) {}
+  applyLighting();
+  const s = selected?.userData.f; build(); if (s) select(furnGroup.children.find(g => g.userData.f === s) || null);
+}
+$('tday').onclick = () => setEvening(false);
+$('teve').onclick = () => setEvening(true);
 
 // ---------- first-person walking ----------
 function blocked(x, y) {
@@ -1078,7 +1205,8 @@ function walkTo(r) { // stand in a free spot near the room's centre
   }
   walk.x = cx; walk.y = cy;
 }
-function walkStep(dt) {
+function walkStep(dt) { // returns true if the view moved
+  const was = [walk.x, walk.y, walk.yaw, walk.pitch];
   const k = walk.keys, f = (k.has('fwd') ? 1 : 0) - (k.has('back') ? 1 : 0), s = (k.has('right') ? 1 : 0) - (k.has('left') ? 1 : 0);
   const turn = (k.has('turnL') ? 1 : 0) - (k.has('turnR') ? 1 : 0);
   walk.yaw += turn * 1.8 * dt;
@@ -1091,6 +1219,7 @@ function walkStep(dt) {
   }
   walkCam.position.set(walk.x * S, walk.eye * S, walk.y * S);
   walkCam.rotation.set(walk.pitch, walk.yaw, 0);
+  return was[0] !== walk.x || was[1] !== walk.y || was[2] !== walk.yaw || was[3] !== walk.pitch;
 }
 const keyMap = { KeyW: 'fwd', ArrowUp: 'fwd', KeyS: 'back', ArrowDown: 'back', KeyA: 'left', KeyD: 'right', ArrowLeft: 'turnL', ArrowRight: 'turnR', KeyQ: 'turnL', KeyE: 'turnR', ShiftLeft: 'fast', ShiftRight: 'fast' };
 addEventListener('keydown', e => {
@@ -1127,10 +1256,11 @@ function frame() {
 }
 
 function resize() {
+  invalidate();
   const w = stage.clientWidth, h = stage.clientHeight;
   if (!w || !h) return;
   renderer.setSize(w, h);
-  composer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+  composer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
   composer.setSize(w, h);
   labelRenderer.setSize(w, h);
   persp.aspect = walkCam.aspect = w / h;
@@ -1217,9 +1347,14 @@ function load(data) {
 }
 
 let last = performance.now();
+// anything the person does may change the view
+for (const ev of ['pointerdown', 'pointerup', 'wheel', 'keydown', 'keyup']) addEventListener(ev, () => invalidate(), { passive: true, capture: true });
+addEventListener('pointermove', e => { if (e.buttons || document.pointerLockElement || drag) invalidate(); }, { passive: true, capture: true });
 renderer.setAnimationLoop(() => {
   const now = performance.now(), dt = Math.min(0.1, (now - last) / 1000); last = now;
-  if (mode === 'walk') walkStep(dt); else (mode === '3d' ? ctl3d : ctlPlan).update();
+  const moved = mode === 'walk' ? walkStep(dt) : (mode === '3d' ? ctl3d : ctlPlan).update();
+  if (!moved && frames <= 0 && !drag) return; // nothing changed: skip the frame
+  frames--;
   if (selBox) selBox.update();
   const cam = mode === '3d' ? persp : mode === 'walk' ? walkCam : ortho;
   if (hq && mode !== 'plan') { renderPass.camera = gtao.camera = cam; composer.render(); }
@@ -1227,6 +1362,7 @@ renderer.setAnimationLoop(() => {
   labelRenderer.render(scene, cam);
 });
 
+applyLighting();
 fetch('flat.json', { cache: 'no-store' })
   .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
   .then(load)
