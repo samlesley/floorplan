@@ -1,0 +1,70 @@
+{
+  "name": "My flat (placeholder layout)",
+  "note": "Placeholder layout to show the format. Replace with your own measurements. All sizes in millimetres. x runs left to right, y runs top to bottom, as on a printed floorplan.",
+  "defaults": {
+    "ceilingHeight": 2800,
+    "wallThickness": 100,
+    "doorHeight": 2000
+  },
+  "rooms": [
+    {
+      "id": "living",
+      "name": "Living room",
+      "floor": "timber",
+      "corners": [[0, 0], [4800, 0], [4800, 4200], [0, 4200]],
+      "wallThickness": [450, 100, 100, 450]
+    },
+    {
+      "id": "kitchen",
+      "name": "Kitchen",
+      "floor": "tile",
+      "corners": [[4900, 0], [7900, 0], [7900, 4200], [4900, 4200]],
+      "wallThickness": [450, 450, 100, 100]
+    },
+    {
+      "id": "hall",
+      "name": "Hall",
+      "floor": "timber",
+      "corners": [[0, 4300], [7900, 4300], [7900, 5500], [0, 5500]],
+      "wallThickness": [100, 450, 100, 450]
+    },
+    {
+      "id": "bedroom",
+      "name": "Bedroom",
+      "floor": "carpet",
+      "corners": [[0, 5600], [4000, 5600], [4000, 9200], [0, 9200]],
+      "wallThickness": [100, 100, 450, 450]
+    },
+    {
+      "id": "bathroom",
+      "name": "Bathroom",
+      "floor": "tile",
+      "corners": [[4100, 5600], [6400, 5600], [6400, 7800], [4100, 7800]],
+      "wallThickness": [100, 450, 100, 100]
+    }
+  ],
+  "openings": [
+    { "type": "door", "room": "living", "wall": 2, "offset": 3000, "width": 838 },
+    { "type": "door", "room": "kitchen", "wall": 2, "offset": 2000, "width": 838 },
+    { "type": "door", "room": "bedroom", "wall": 0, "offset": 2800, "width": 762 },
+    { "type": "door", "room": "bathroom", "wall": 0, "offset": 300, "width": 762 },
+    { "type": "door", "room": "hall", "wall": 1, "offset": 150, "width": 900, "height": 2100 },
+    { "type": "window", "room": "living", "wall": 0, "offset": 700, "width": 1200, "sill": 750, "height": 1700 },
+    { "type": "window", "room": "living", "wall": 0, "offset": 2900, "width": 1200, "sill": 750, "height": 1700 },
+    { "type": "window", "room": "kitchen", "wall": 0, "offset": 1000, "width": 1200, "sill": 1000, "height": 1400 },
+    { "type": "window", "room": "bedroom", "wall": 2, "offset": 1400, "width": 1200, "sill": 750, "height": 1700 },
+    { "type": "window", "room": "bathroom", "wall": 1, "offset": 700, "width": 600, "sill": 1300, "height": 900 }
+  ],
+  "furniture": [
+    { "name": "Sofa", "room": "living", "x": 2400, "y": 3500, "w": 2100, "d": 900, "h": 850, "rot": 180, "colour": "#6b7a8f", "status": "owned" },
+    { "name": "Coffee table", "room": "living", "x": 2400, "y": 2500, "w": 1100, "d": 550, "h": 420, "colour": "#a07850", "status": "owned" },
+    { "name": "Record cabinet", "room": "living", "x": 300, "y": 2100, "w": 1400, "d": 450, "h": 700, "rot": 90, "colour": "#3d3d3d", "status": "owned" },
+    { "name": "Armchair (candidate)", "room": "living", "x": 4100, "y": 1500, "w": 800, "d": 850, "h": 900, "rot": -120, "colour": "#c9a36b", "status": "candidate", "price": "£599", "source": "https://example.com/armchair" },
+    { "name": "Dining table", "room": "kitchen", "x": 6400, "y": 3100, "w": 1200, "d": 800, "h": 750, "colour": "#b08a5a", "status": "owned" },
+    { "name": "Kitchen units", "room": "kitchen", "x": 6400, "y": 300, "w": 3000, "d": 600, "h": 900, "colour": "#e6e2da", "status": "owned" },
+    { "name": "Double bed", "room": "bedroom", "x": 2000, "y": 7900, "w": 1350, "d": 1900, "h": 500, "rot": 180, "colour": "#d8d2c4", "status": "owned" },
+    { "name": "Wardrobe", "room": "bedroom", "x": 3650, "y": 6900, "w": 1000, "d": 600, "h": 2000, "rot": 90, "colour": "#8a6a4a", "status": "owned" },
+    { "name": "Bath", "room": "bathroom", "x": 5250, "y": 7400, "w": 1700, "d": 700, "h": 550, "colour": "#f4f4f4", "status": "owned" },
+    { "name": "Coat rack", "room": "hall", "x": 7400, "y": 4500, "w": 800, "d": 300, "h": 1800, "colour": "#555555", "status": "owned" }
+  ]
+}
