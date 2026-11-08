@@ -112,6 +112,14 @@ As given:
 
 How it was used: the window now sits at the back of a recess in the outside wall, 1150 wide and 350 deep (both estimated), starting where the futon ends, so the futon runs right up to the wall beside it. The low bookshelf sits inside the recess under the window; its height is now 600 so it fits under the sill.
 
+## 2026-11-08: bedroom 2 window position
+
+As given:
+
+> the spare room window is more central
+
+How it was used: the window recess (and the window centred in it) is now centred on the window wall, between the side wall and the chimney breast. The futon still runs up to the wall, so its end now sits partly across the recess opening, with the low bookshelf inside the recess beside it. The distance from the futon wall to the recess would confirm this.
+
 ## Still to measure
 
 Defaults, plan-scaled figures or photo estimates are in use for all of these.

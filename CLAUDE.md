@@ -8,7 +8,8 @@ The whole flat is described in one data file, `flat.json`. `index.html` is a thr
 
 The viewer has:
 - a 3D view (orbit, pan, zoom) and a plan view that shows each wall's number and internal length. Plan view cuts everything at 1200 mm, like an architect's plan, so doors, worktops and windows show and wall cupboards and cornices don't
-- realistic finishes: textured floors, wall colours, skirting, picture rails, panelling, cornices, window frames and sills, door frames and door leaves
+- realistic finishes: textured floors, wall colours on plaster, skirting, picture rails, grooved panelling, cornices, window frames and sills, door frames and door leaves; wood grain, fabric weave, stone and tile textures at real scale; rounded upholstery
+- high quality lighting (a tick box, on by default, remembered per browser): soft environment light and ambient occlusion in the 3D and Walk views; turn it off on a slow machine
 - a wall height slider for cutaway views (fittings and furniture are cut with the walls)
 - a Walk view: first person at eye height (1.6 m) with ceilings shown. Click to look with the mouse (Esc to stop), or drag; W A S D to move, arrow keys or Q and E to turn, Shift to go faster; on-screen arrows for touch. Walls and furniture block the way, doorways don't. Clicking a room in the list jumps there; clicking a piece under the crosshair shows its details
 - furniture you can click for size, price and link; pieces marked `candidate` can be hidden
@@ -55,6 +56,7 @@ All sizes in millimetres. Coordinates follow a printed floorplan: x runs left to
   "rooms": [ ... ],
   "walls": [ ... ],
   "openings": [ ... ],
+  "surroundings": [ ... ],
   "furniture": [ ... ]
 }
 ```
@@ -77,7 +79,7 @@ All sizes in millimetres. Coordinates follow a printed floorplan: x runs left to
     "pictureRail": 2450,          // height of the rail
     "cornice": 260,               // depth of the cornice at the top of the wall
     "skirting": 230,              // skirting height (0 for none)
-    "dado": { "height": 1150, "colour": "#1f3b32" },   // panelling from the floor up
+    "dado": { "height": 1150, "colour": "#1f3b32" },   // tongue and groove panelling from the floor up ("style": "flat" for plain)
     "trim": "#f4f2ec"             // woodwork: skirting, rails, architraves, sills
   },
   "corners": [[0,0],[4800,0],[4800,4200],[0,4200]],
@@ -100,6 +102,17 @@ For wall pieces that are not part of a room outline: nibs, part walls, the sides
 
 - The wall is centred on the line from `from` to `to`. `thickness` defaults to `defaults.wallThickness`, `height` to the room's ceiling height.
 - With `room`, both faces get that room's finish (paint, skirting and so on). `colour` sets the plain wall colour instead.
+
+### Surroundings
+
+What you see through the windows in the Walk view (hidden in the other views). Each is a block centred on the line `from` to `to`.
+
+```jsonc
+{ "name": "Front hedge", "type": "hedge", "from": [15500, -3000], "to": [15500, 7500], "depth": 700, "height": 1300, "z": -900, "colour": "#55683f" }
+```
+
+- `type`: `building` (sandstone tenement front with windows) or anything else for greenery (hedge, trees).
+- `z` is the base height relative to the flat's floor; the street outside is drawn at -900 in Walk view.
 
 ### Openings (doors and windows)
 
@@ -139,6 +152,7 @@ Extra fields for any piece:
 - `"kind"` draws a simple shape instead of a box: `"radiator"` (with `"style": "panel" | "column"`), `"sofa"` (also armchairs and benches), `"bed"`, `"table"` (`"shape": "round"`, or `"style": "solid"` for a cabinet-style base), `"chair"`, `"rug"`, `"tv"`, `"shelves"` (open shelving, `"shelves": 6`), `"pendant"` (a ceiling light with its shade's underside at `z`: `"style": "dome" | "bowl" | "drum" | "globe"`, `"rose": 700` for a ceiling rose), `"curtain"` (gathered fabric), `"picture"` (frame in `colour`, picture in `colour2`, `"mirror": true` for glass). `"colour2"` is the second colour: bedding, table legs, shelf boards, a rug's centre.
 - At `rot` 0 a piece's front faces down the plan (+y); `rot` 90 faces left (-x), 180 up, 270 right.
 - `"opacity": 0.3`, `"metalness": 0.6`, `"roughness": 0.2`: for glass, stainless steel, gloss.
+- `"material"`: a surface texture tinted by `colour`: `"wood"`, `"fabric"`, `"stone"`, `"tile"` (with `"tileSize": 150` in mm), `"plaster"`, `"boards"`. Sofas default to fabric and tables, chairs and beds to wood.
 
 Without `model` a piece is drawn as a box of its stated size. With `model` the viewer loads the GLB and scales it to exactly `w` × `d` × `h`, falling back to a box if it fails to load.
 
