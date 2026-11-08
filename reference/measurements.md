@@ -126,6 +126,15 @@ Lamps seen in the photos, added with estimated sizes and positions: the pleated 
 
 The calico cat (seen in the bedroom 2 photo) is modelled curled up asleep on the lounge sofa, at my choice of spot.
 
+## 2026-11-08: bedroom 2 airer (candidate)
+
+As given:
+
+> can you also add a 6 lathe 1.5m long victorian style pulley air dryer to the spare room, hooked nnear to the light switch, using this winch mechanism to lower it
+> put it sort of to the right and behind from the perspectic as being sat at the desk in that room, between the door and light/ sofa
+
+How it was used: a candidate 6 lath, 1.5 m Victorian airer runs along the room between the door and the futon, behind and to the right when sat at the desk, its laths 2.3 m up when raised (Lower it in its details panel drops it to 1.15 m). The hand winch (Cast in Style A2366) is on the wall by the light switch, just round the corner from the door, at 950 to the bottom of its back board, with its rope running up and along the ceiling to the airer's pulleys. The light switch position is taken from the photo; its exact place, and the raised and lowered heights you want, are worth confirming.
+
 ## Still to measure
 
 Defaults, plan-scaled figures or photo estimates are in use for all of these.
@@ -150,3 +159,4 @@ Defaults, plan-scaled figures or photo estimates are in use for all of these.
 - Hall: the high shelf (depth and height) and radiator position; the hall cupboard inside size (about 1230 x 1340 scaled).
 - Radiator sizes and positions in every room (estimated from photos).
 - Furniture: width, depth and height of each piece, and where it sits (distance from two walls), most usefully the sofa, coffee table, TV unit, bed, wardrobes and desk.
+- Bedroom 2: light switch position (for the airer winch), and the airer's raised and lowered heights.

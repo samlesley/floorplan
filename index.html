@@ -186,6 +186,8 @@ const walkCam = new THREE.PerspectiveCamera(70, 1, 0.03, 200);
 walkCam.rotation.order = 'YXZ';
 const walk = { x: 0, y: 0, yaw: 0, pitch: 0, keys: new Set(), eye: 1600, r: 200, started: false };
 let colliders = [], ceilings = [];
+const airerDown = new Set(); // airers wound down, by furniture index
+const zOf = f => (f.kind === 'airer' && airerDown.has(flat.furniture.indexOf(f))) ? (f.lowered ?? 1150) : (f.z || 0);
 let evening = false; const lampOff = new Set(); // lamps switched off, by furniture index
 try { evening = localStorage.getItem('flat-evening') === '1'; } catch (e) {}
 const isLight = f => f && (f.kind === 'pendant' || f.kind === 'lamp');
@@ -345,11 +347,20 @@ const carpetTex = base => canvasTex('carpet' + base, 256, 256, (g, w) => {
   for (let k = 0; k < 9000; k++) { const v = r() < 0.5 ? 0 : 255; g.fillStyle = `rgba(${v},${v},${v},${r() * 0.06})`; g.fillRect(r() * w, r() * w, 1.5, 1.5); }
 });
 // calico coat: white with orange and black patches
-const calicoTex = () => canvasTex('calico', 256, 128, (g, w, h) => {
-  const r = rng(41); g.fillStyle = '#f4efe6'; g.fillRect(0, 0, w, h);
-  const blob = (col, x, y, s) => { g.fillStyle = col; for (let k = 0; k < 7; k++) { g.beginPath(); g.ellipse(x + (r() - 0.5) * s, y + (r() - 0.5) * s * 0.6, s * (0.3 + r() * 0.4), s * (0.2 + r() * 0.3), r() * 3, 0, 7); g.fill(); } };
-  blob('#d9822b', 40, 40, 60); blob('#2b2420', 120, 50, 55); blob('#d9822b', 200, 35, 50); blob('#2b2420', 230, 80, 35); blob('#c9762a', 90, 85, 35); blob('#2b2420', 20, 95, 30);
-  for (let k = 0; k < 2500; k++) { g.fillStyle = `rgba(0,0,0,${r() * 0.05})`; g.fillRect(r() * w, r() * h, 1, 2); }
+// her coat, from the photo: mostly black, mottled with ginger and brown, a larger ginger patch on the flank
+const calicoTex = () => canvasTex('calico2', 512, 256, (g, w, h) => {
+  const r = rng(41); g.fillStyle = '#1f1916'; g.fillRect(0, 0, w, h);
+  const blob = (col, x, y, s, n = 7, a = 1) => { g.globalAlpha = a; g.fillStyle = col; for (let k = 0; k < n; k++) { g.beginPath(); g.ellipse(x + (r() - 0.5) * s, y + (r() - 0.5) * s * 0.6, s * (0.25 + r() * 0.35), s * (0.12 + r() * 0.2), r() * 3, 0, 7); g.fill(); } g.globalAlpha = 1; };
+  blob('#b4682c', 330, 120, 150, 12, 0.85); blob('#c97d36', 340, 110, 90, 8, 0.8);       // ginger patch on the flank
+  for (let k = 0; k < 90; k++) blob(r() < 0.5 ? '#9a5a2c' : '#c27a38', r() * w, r() * h, 18 + r() * 40, 3, 0.55); // mottling
+  for (let k = 0; k < 9000; k++) { const v = r() < 0.5 ? '#3a2a20' : '#120e0c'; g.fillStyle = v; g.globalAlpha = 0.35; g.fillRect(r() * w, r() * h, 1, 3); } // fur
+  g.globalAlpha = 1;
+});
+// her face: black, with a ginger blaze on one side
+const catFaceTex = () => canvasTex('catface', 256, 128, (g, w, h) => {
+  const r = rng(7); g.fillStyle = '#1b1613'; g.fillRect(0, 0, w, h);
+  g.fillStyle = '#c27a38'; g.beginPath(); g.ellipse(w * 0.62, h * 0.45, w * 0.1, h * 0.28, 0.3, 0, 7); g.fill();
+  for (let k = 0; k < 3000; k++) { g.fillStyle = r() < 0.5 ? 'rgba(80,55,35,.3)' : 'rgba(0,0,0,.3)'; g.fillRect(r() * w, r() * h, 1, 2); }
 });
 const floorMats = new Map();
 function floorMaterial(r) {
@@ -566,10 +577,10 @@ function build() {
     if (!(f.w > 0 && f.d > 0 && f.h > 0)) { checks.push(`"${f.name}" needs w, d and h.`); continue; }
     // pieces follow the wall cut (slider, or 1200 mm in plan view), so wall cupboards and wardrobes don't stand above cut walls
     const r = flat.rooms.find(r => r.id === f.room);
-    const top = Math.min(planCut(), (r ? ceiling(r) : flat.defaults?.ceilingHeight ?? 2700) * wallFactor);
-    if ((f.z || 0) >= top) continue;
+    const top = f.kind === 'airer' && mode === 'plan' ? Infinity : Math.min(planCut(), (r ? ceiling(r) : flat.defaults?.ceilingHeight ?? 2700) * wallFactor);
+    if (zOf(f) >= top) continue;
     if (f.h > 300 && (f.z || 0) < 1500 && f.kind !== 'rug' && f.kind !== 'curtain' && f.kind !== 'picture' && !(f.opacity < 1)) colliders.push({ cx: f.x, cy: f.y, hw: f.w / 2, hd: f.d / 2, a: THREE.MathUtils.degToRad(f.rot || 0) });
-    addFurniture(f, Math.min(f.h, top - (f.z || 0)));
+    addFurniture(f, Math.min(f.h, top - zOf(f)));
   }
 
   // sun and shadow box
@@ -700,7 +711,7 @@ function pane(e, u0, u1, y0, y1) {
 
 function addFurniture(f, hShown = f.h) {
   const g = new THREE.Group();
-  g.position.set(f.x * S, (f.z || 0) * S, f.y * S);
+  g.position.set(f.x * S, zOf(f) * S, f.y * S);
   g.rotation.y = -THREE.MathUtils.degToRad(f.rot || 0);
   g.userData.f = f;
   const cand = f.status === 'candidate';
@@ -719,7 +730,11 @@ function addFurniture(f, hShown = f.h) {
   else if (!f.model && shapes[f.kind]) {
     const idx = flat.furniture.indexOf(f), lit = evening && isLight(f) && !lampOff.has(idx);
     const fs = hShown < f.h ? { ...f, h: hShown } : f; // cut down to the wall height, like plain boxes
-    const shape = shapes[f.kind](fs, (c, o = {}) => mat(c, cand ? { ...o, transparent: true, opacity: 0.8 } : o), { lit });
+    // for ropes: the ceiling above the piece, and where the airer's rope runs to, in the piece's own frame
+    const room = flat.rooms.find(r => r.id === f.room), top = (room ? ceiling(room) : 2700) * Math.min(1, wallFactor) - zOf(f);
+    let ropeTo = null;
+    if (f.ropeTo) { const a = THREE.MathUtils.degToRad(f.rot || 0), dx = f.ropeTo[0] - f.x, dy = f.ropeTo[1] - f.y; ropeTo = [dx * Math.cos(a) + dy * Math.sin(a), -dx * Math.sin(a) + dy * Math.cos(a)]; }
+    const shape = shapes[f.kind](fs, (c, o = {}) => mat(c, cand ? { ...o, transparent: true, opacity: 0.8 } : o), { lit, top, ropeTo });
     g.add(shape);
     if (lit && shape.userData.lightAt) {
       const [lx, ly, lz] = shape.userData.lightAt;
@@ -744,7 +759,7 @@ function addFurniture(f, hShown = f.h) {
   div.className = 'lbl-furn';
   div.textContent = f.name;
   const lab = new CSS2DObject(div);
-  lab.position.set(f.x * S, ((f.z || 0) + f.h) * S + 0.05, f.y * S);
+  lab.position.set(f.x * S, (zOf(f) + f.h) * S + 0.05, f.y * S);
   furnGroup.add(g, lab);
   furnLabels.push(lab);
   g.userData.label = lab;
@@ -886,12 +901,55 @@ const shapes = {
     const g = new THREE.Group(), w = f.w / 2, d = f.d / 2, h = f.h;
     const coat = new THREE.MeshStandardMaterial({ map: calicoTex(), roughness: 1 });
     const ell = (rx, ry, rz, x, y, z, m = coat) => { const e = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 20), m); e.scale.set(rx * S, ry * S, rz * S); e.position.set(x * S, y * S, z * S); e.castShadow = e.receiveShadow = true; g.add(e); return e; };
+    const white = new THREE.MeshStandardMaterial({ color: '#f3efe8', roughness: 1 }), face = new THREE.MeshStandardMaterial({ map: catFaceTex(), roughness: 1 });
     ell(w * 0.92, h * 0.5, d * 0.88, -w * 0.05, h * 0.5, -d * 0.05);              // body
-    const head = ell(w * 0.32, h * 0.36, d * 0.36, w * 0.45, h * 0.42, d * 0.42);  // head tucked against the body
+    ell(w * 0.26, h * 0.3, d * 0.2, w * 0.4, h * 0.32, d * 0.62, white);         // white chest
+    ell(w * 0.16, h * 0.13, d * 0.12, w * 0.12, h * 0.13, d * 0.82, white);      // white front paw tucked forwards
+    const head = ell(w * 0.32, h * 0.36, d * 0.36, w * 0.45, h * 0.42, d * 0.42, face);  // head tucked against the body
     head.rotation.y = -0.6;
-    for (const s of [-1, 1]) { const e = new THREE.Mesh(new THREE.ConeGeometry(28 * S, 55 * S, 10), coat); e.position.set((w * 0.45 + s * 45) * S, (h * 0.42 + h * 0.3) * S, (d * 0.42 - 25) * S); e.rotation.set(-0.35, 0, s * -0.4); g.add(e); }
-    const tail = new THREE.Mesh(new THREE.TorusGeometry(w * 0.72 * S, 30 * S, 10, 28, Math.PI * 0.9), M('#2b2420', { roughness: 1 }));
+    ell(w * 0.12, h * 0.12, d * 0.1, w * 0.52, h * 0.3, d * 0.68, white);        // white muzzle and chin
+    ell(10, 7, 8, w * 0.55, h * 0.4, d * 0.75, M('#e9a3a3', { roughness: 0.6 })); // pink nose
+    for (const s of [-1, 1]) { const e = new THREE.Mesh(new THREE.ConeGeometry(28 * S, 55 * S, 10), s > 0 ? M('#c27a38', { roughness: 1 }) : M('#1b1613', { roughness: 1 })); e.position.set((w * 0.45 + s * 45) * S, (h * 0.42 + h * 0.3) * S, (d * 0.42 - 25) * S); e.rotation.set(-0.35, 0, s * -0.4); g.add(e); }
+    const tail = new THREE.Mesh(new THREE.TorusGeometry(w * 0.72 * S, 30 * S, 10, 28, Math.PI * 0.9), M('#1f1916', { roughness: 1 }));
     tail.rotation.x = Math.PI / 2; tail.rotation.z = 0.35; tail.position.set(-w * 0.05 * S, 40 * S, -d * 0.05 * S); tail.scale.y = d / w; g.add(tail);
+    return g;
+  },
+  airer(f, M, ctx = {}) { // pulley clothes airer: cast iron ends, wooden laths, ropes up to ceiling pulleys
+    const g = new THREE.Group(), w = f.w / 2, d = f.d / 2, h = f.h, n = f.laths || 6, gap = f.endGap || 1260;
+    const iron = M(f.colour2 || '#1d1d1f', { roughness: 0.45, metalness: 0.5 }), wood = M(f.colour || '#d8b07a', { roughness: 0.6, surface: 'wood' });
+    const rope = M('#ece6d6', { roughness: 1 });
+    // an end: a plate with an arched top and pierced scrolls, the laths resting along its lower edge
+    const sh = new THREE.Shape();
+    sh.moveTo(-d, 0); sh.lineTo(d, 0); sh.lineTo(d, 70); sh.quadraticCurveTo(d * 0.45, 90, 0, h); sh.quadraticCurveTo(-d * 0.45, 90, -d, 70); sh.closePath();
+    for (const [cx, cy, rr] of [[-d * 0.55, 55, 26], [d * 0.55, 55, 26], [-d * 0.2, 90, 30], [d * 0.2, 90, 30], [0, h - 55, 20]]) { const hole = new THREE.Path(); hole.absarc(cx, cy, rr, 0, Math.PI * 2, true); sh.holes.push(hole); }
+    const endGeo = new THREE.ExtrudeGeometry(sh, { depth: 14, bevelEnabled: false });
+    endGeo.scale(S, S, S); endGeo.rotateY(Math.PI / 2);
+    for (const sx of [-1, 1]) { const e = new THREE.Mesh(endGeo, iron); e.position.x = (sx * gap / 2 - 7) * S; e.castShadow = true; g.add(e); }
+    for (let i = 0; i < n; i++) { const z = -d + 45 + (2 * d - 90) * i / (n - 1); part(g, wood, -w, w, 18, 50, z - 16, z + 16, 6); }
+    // ropes from the top of each end up to a pulley on the ceiling, then along the ceiling to the pulley over the winch
+    const up = (ctx.top ?? 900);
+    const rod = (a, b, r = 5) => { const A = new THREE.Vector3(...a).multiplyScalar(S), B = new THREE.Vector3(...b).multiplyScalar(S), L = A.distanceTo(B);
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(r * S, r * S, L, 6), rope); m.position.copy(A).add(B).multiplyScalar(0.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), B.clone().sub(A).normalize()); g.add(m); };
+    const wheel = (x, z) => { const p = new THREE.Mesh(new THREE.CylinderGeometry(40 * S, 40 * S, 22 * S, 16), iron); p.rotation.z = Math.PI / 2; p.position.set(x * S, (up - 55) * S, z * S); g.add(p); };
+    for (const sx of [-1, 1]) { rod([sx * gap / 2, h, 0], [sx * gap / 2, up - 60, 0]); wheel(sx * gap / 2, 0); }
+    if (ctx.ropeTo) { const [tx, tz] = ctx.ropeTo; rod([-gap / 2, up - 60, 0], [tx, up - 60, tz], 4); rod([gap / 2, up - 60, 0], [tx, up - 60, tz], 4); }
+    return g;
+  },
+  winch(f, M, ctx = {}) { // wall winch: round wooden back board, cast iron drum and crank; its rope goes up to a ceiling pulley
+    const g = new THREE.Group(), R = f.w / 2, d = f.d, back = -f.d / 2, cy = f.h / 2;
+    const iron = M(f.colour2 || '#1d1d1f', { roughness: 0.45, metalness: 0.5 }), oak = M(f.colour || '#5a3a22', { roughness: 0.55, surface: 'wood' });
+    const disc = (r, len, z, m) => { const c = cyl(g, m, r, r, len, cy, 0, back + z + len / 2, false, 32); c.rotation.x = Math.PI / 2; return c; };
+    disc(R, 25, 0, oak);                 // back board
+    disc(R * 0.62, 15, 25, iron);        // mounting plate
+    disc(75, 45, 40, iron);              // rope drum, 150 across
+    disc(R * 0.78, 12, 85, iron);        // front plate
+    part(g, iron, -12, 12, cy, cy + R * 0.7, back + 97, back + 110);  // crank arm
+    const knob = cyl(g, oak, 14, 16, 70, cy + R * 0.7, 0, back + 110 + 35, false, 16); knob.rotation.x = Math.PI / 2;
+    // rope from the top of the drum up to the ceiling pulley above
+    const top = ctx.top ?? 1500, A = [0, cy + 75, back + 62], B = [0, top - 60, back + 62];
+    const rope = new THREE.Mesh(new THREE.CylinderGeometry(5 * S, 5 * S, (B[1] - A[1]) * S, 6), M('#ece6d6', { roughness: 1 }));
+    rope.position.set(0, (A[1] + B[1]) / 2 * S, A[2] * S); g.add(rope);
+    const p = new THREE.Mesh(new THREE.CylinderGeometry(40 * S, 40 * S, 22 * S, 16), iron); p.rotation.z = Math.PI / 2; p.position.set(0, (top - 55) * S, A[2] * S); g.add(p);
     return g;
   },
   picture(f, M) { // framed picture or mirror on a wall: frame, then the picture or glass slightly proud
@@ -1002,11 +1060,13 @@ function select(g) {
     </dl>
     ${movable(f) ? `<div class="btns"><button class="btn" data-turn="-15">⟲ Turn 15°</button><button class="btn" data-turn="15">⟳ Turn 15°</button>${isMoved(idx) ? '<button class="btn" data-undo>Undo move</button>' : ''}</div>
     <p class="note" style="margin:8px 0 0">Drag it in Plan view to move it; R turns it.</p>` : ''}
+    ${f.kind === 'airer' ? `<div class="btns"><button class="btn" data-airer>${airerDown.has(idx) ? 'Raise it' : 'Lower it'}</button></div>` : ''}
     ${isLight(f) ? (evening ? `<div class="btns"><button class="btn" data-lamp>${lampOff.has(idx) ? 'Turn on' : 'Turn off'}</button></div>` : '<p class="note" style="margin:8px 0 0">Choose "Evening, lamps on" to see it lit.</p>') : ''}
     ${removable(f) ? `<div class="btns"><button class="btn" data-remove>Remove</button></div>` : ''}`;
   info.hidden = false;
   info.querySelector('.close').onclick = () => select(null);
   info.querySelectorAll('[data-turn]').forEach(b => b.onclick = () => turnPiece(f, +b.dataset.turn));
+  const ab = info.querySelector('[data-airer]'); if (ab) ab.onclick = () => { airerDown.has(idx) ? airerDown.delete(idx) : airerDown.add(idx); const s = f; build(); select(furnGroup.children.find(g => g.userData.f === s) || null); };
   const lb = info.querySelector('[data-lamp]'); if (lb) lb.onclick = () => { lampOff.has(idx) ? lampOff.delete(idx) : lampOff.add(idx); changed(f); };
   const rm = info.querySelector('[data-remove]'); if (rm) rm.onclick = () => removePiece(f);
   const u = info.querySelector('[data-undo]'); if (u) u.onclick = () => { Object.assign(f, orig[idx]); if (!orig[idx].rot) delete f.rot; changed(f); };
