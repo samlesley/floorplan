@@ -843,9 +843,9 @@ function saveMoves() {
   const pieces = {};
   flat.furniture.forEach((f, i) => {
     if (removed.has(i)) pieces[i] = { sig: sig(f), removed: true };
-    else if (isMoved(i)) pieces[i] = { sig: sig(f), x: f.x, y: f.y, rot: f.rot || 0 };
+    else if (isMoved(i)) pieces[i] = { sig: sig(f), x: f.x, y: f.y, rot: f.rot || 0, from: [orig[i].x, orig[i].y, orig[i].rot || 0] };
   });
-  try { Object.keys(pieces).length ? localStorage.setItem(layoutKey(), JSON.stringify({ v: 2, pieces })) : localStorage.removeItem(layoutKey()); } catch (e) {}
+  try { Object.keys(pieces).length ? localStorage.setItem(layoutKey(), JSON.stringify({ v: 3, pieces })) : localStorage.removeItem(layoutKey()); } catch (e) {}
   const nm = Object.values(pieces).filter(p => !p.removed).length, nr = removed.size;
   $('moves').hidden = !(nm + nr);
   const pl = (n, w) => `${n} piece${n === 1 ? '' : 's'} ${w}`;
@@ -860,7 +860,8 @@ function loadMoves() {
     const f = flat.furniture[+i];
     if (!f || (m.sig ? m.sig !== sig(f) : m.name !== f.name)) continue;
     if (m.removed) { if (removable(f)) removed.add(+i); }
-    else if (movable(f)) { f.x = m.x; f.y = m.y; if (m.rot) f.rot = m.rot; else delete f.rot; }
+    // skip a move if flat.json has since changed where this piece starts (the file wins)
+    else if (movable(f) && (!m.from || (m.from[0] === f.x && m.from[1] === f.y && m.from[2] === (f.rot || 0)))) { f.x = m.x; f.y = m.y; if (m.rot) f.rot = m.rot; else delete f.rot; }
   }
 }
 function changed(f) { // rebuild after a move or turn, keep the piece selected, remember the layout
