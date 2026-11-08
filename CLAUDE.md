@@ -7,8 +7,9 @@ A 3D model of my flat, built from my own measurements, floorplans and photos, us
 The whole flat is described in one data file, `flat.json`. `index.html` is a three.js viewer that reads it and builds the model: walls with door and window openings, floors, and furniture. Nothing is drawn by hand; to change the model, change `flat.json`.
 
 The viewer has:
-- a 3D view (orbit, pan, zoom) and a plan view that shows each wall's number and internal length
-- a wall height slider for cutaway views
+- a 3D view (orbit, pan, zoom) and a plan view that shows each wall's number and internal length. Plan view cuts everything at 1200 mm, like an architect's plan, so doors, worktops and windows show and wall cupboards and cornices don't
+- realistic finishes: textured floors, wall colours, skirting, picture rails, panelling, cornices, window frames and sills, door frames and door leaves
+- a wall height slider for cutaway views (fixed fittings are cut with the walls)
 - furniture you can click for size, price and link; pieces marked `candidate` can be hidden
 - a "Checks" panel listing data problems (an opening past the end of its wall, a missing wall, a piece with no size)
 - a "Preview a different flat.json" button for trying a version without saving it
@@ -47,7 +48,8 @@ All sizes in millimetres. Coordinates follow a printed floorplan: x runs left to
 {
   "name": "My flat",
   "note": "Shown under the title in the viewer",
-  "defaults": { "ceilingHeight": 2800, "wallThickness": 100, "doorHeight": 2000 },
+  "defaults": { "ceilingHeight": 3400, "wallThickness": 100, "doorHeight": 2100,
+                "finish": { "trim": "#f4f2ec", "skirting": 200 } },   // finish defaults for every room
   "rooms": [ ... ],
   "walls": [ ... ],
   "openings": [ ... ],
@@ -61,8 +63,21 @@ All sizes in millimetres. Coordinates follow a printed floorplan: x runs left to
 {
   "id": "living",                 // short id used by openings and furniture
   "name": "Living room",
-  "floor": "timber",              // timber | tile | carpet | concrete, or set "floorColour": "#hex"
+  "floor": "timber",              // timber | tile | checker | carpet | concrete
+  "floorColour": "#c99d68",       // base colour (boards, tiles, carpet; the light squares for checker)
+  "floorColour2": "#1c1c1e",      // checker only: the dark squares
+  "floorRuns": "x",               // timber only: boards run along x or y
+  "tileSize": 300,                // tile and checker only
   "ceilingHeight": 3100,          // optional, overrides the default
+  "finish": {                     // optional, merged over defaults.finish
+    "wall": "#34495f",            // paint (below the picture rail, if there is one)
+    "upper": "#f1eee7",           // paint above the picture rail
+    "pictureRail": 2450,          // height of the rail
+    "cornice": 260,               // depth of the cornice at the top of the wall
+    "skirting": 230,              // skirting height (0 for none)
+    "dado": { "height": 1150, "colour": "#1f3b32" },   // panelling from the floor up
+    "trim": "#f4f2ec"             // woodwork: skirting, rails, architraves, sills
+  },
   "corners": [[0,0],[4800,0],[4800,4200],[0,4200]],
   "wallThickness": [450,100,100,450]   // optional, one per wall, else the default
 }
@@ -78,10 +93,11 @@ All sizes in millimetres. Coordinates follow a printed floorplan: x runs left to
 For wall pieces that are not part of a room outline: nibs, part walls, the sides of a built-in cupboard.
 
 ```jsonc
-{ "name": "Bathroom part wall", "from": [1490, 3340], "to": [1490, 4270], "thickness": 100, "height": 2000 }
+{ "name": "Bathroom part wall", "room": "bathroom", "from": [1490, 3340], "to": [1490, 4270], "thickness": 100, "height": 2000 }
 ```
 
-- The wall is centred on the line from `from` to `to`. `thickness` defaults to `defaults.wallThickness`, `height` to `defaults.ceilingHeight`.
+- The wall is centred on the line from `from` to `to`. `thickness` defaults to `defaults.wallThickness`, `height` to the room's ceiling height.
+- With `room`, both faces get that room's finish (paint, skirting and so on). `colour` sets the plain wall colour instead.
 
 ### Openings (doors and windows)
 
@@ -92,6 +108,9 @@ For wall pieces that are not part of a room outline: nibs, part walls, the sides
 
 - `offset` is measured along the wall from its start corner (corner `wall`) to the near edge of the opening.
 - Doors default to `defaults.doorHeight`; set `height` to override.
+- Door leaves are drawn only when `hinge` is set: `"hinge": "start" | "end"` (the jamb nearer the wall's start or end corner), `"swing": "in" | "out"` (into this room or the other side), `"open": 85` (degrees, 0 for closed), `"glazed": true` for a glazed door, `"leaf": "#hex"` for a colour other than the trim.
+- Windows take `"frame": "#hex"` (frame colour, default the trim colour), `"transom": 0.6` (height of the meeting rail as a fraction of the window, 0 for none) and `"bars": 1` (vertical glazing bars).
+- Every door and window gets an architrave in the room's trim colour; windows also get an internal sill board.
 - An opening is defined once, on one room. The viewer also cuts any parallel wall within that wall's thickness on the other side, so a door between two rooms appears in both.
 
 ### Furniture
@@ -109,7 +128,12 @@ For wall pieces that are not part of a room outline: nibs, part walls, the sides
 }
 ```
 
-`fixture` is for permanent parts of the flat that are not walls, such as a fireplace or fitted units. They are always shown.
+`fixture` is for permanent parts of the flat that are not walls, such as a fireplace, kitchen units, bath or radiators. They are always shown, listed under "Fixed fittings", and cut with the walls by the wall height slider. A fitted item made of several parts (worktop on units, fireplace surround and hearth) is several fixtures.
+
+Extra fields for any piece:
+- `"z": 1500`: height of its underside above the floor (wall cupboards, shelves, mirrors).
+- `"kind": "radiator"` with `"style": "panel" | "column"`: drawn as a radiator rather than a plain box.
+- `"opacity": 0.3`, `"metalness": 0.6`, `"roughness": 0.2`: for glass, stainless steel, gloss.
 
 Without `model` a piece is drawn as a box of its stated size. With `model` the viewer loads the GLB and scales it to exactly `w` × `d` × `h`, falling back to a box if it fails to load.
 
@@ -134,4 +158,4 @@ Without `model` a piece is drawn as a box of its stated size. With `model` the v
 
 ## Current state
 
-Roadmap step 1 is in progress. `flat.json` holds the real layout traced from `reference/floorplans/floorplan.png`: seven rooms (including the hall cupboard), all doors and windows, nibs and cupboard walls, and the lounge fireplace. Room sizes are the plan's printed figures; everything else is scaled from the plan. No tape measurements or photos yet. Next: my measurements and photos, working through the "Still to measure" list in `reference/measurements.md`.
+Roadmap step 1 is nearly done. `flat.json` holds the real layout traced from `reference/floorplans/floorplan.png` (seven rooms including the hall cupboard, all doors and windows, nibs and cupboard walls), dressed from the room photos in `reference/photos/`: wall colours, picture rails, cornices, floors, door leaves, window frames, and the fixed fittings (fireplace, built-in shelving, kitchen units, bathroom fittings, radiators). Room sizes are the plan's printed figures; positions are scaled from the plan; heights, fittings and colours are estimated from photos. No tape measurements yet. Next: my measurements, working through the "Still to measure" list in `reference/measurements.md`.
