@@ -78,9 +78,34 @@ Added to `flat.json` as `owned` pieces. Every size and position is estimated fro
 | Bedroom 1 | Double bed with its head on the window wall; bedside table; mirrored sliding wardrobe on the kitchen side wall; navy bookcase by the radiator |
 | Bedroom 2 | Futon sofa bed on the lounge side wall; low bookshelf by the window; pine side table; cream rug; dark wood wardrobe; desk and desk chair on the hall wall |
 
+## 2026-11-08: my corrections to the model
+
+As given:
+
+> the bed and wardrobe in the main bedroom are the wrong orientaiton, the photo that is based on had my back to the window
+>
+> the unit to the right of the fireplace is recessed into the wall, in built shelfs
+>
+> the spare room looks short the outside wall would be in line with the living room?
+>
+> the hallway rug orientation is the wrong way
+>
+> the 'armchair' isn't in the door in the living room, closer to the sofa and the small side table is in the gap between sofa and armchair
+
+How these were used:
+
+- Bedroom 1: with the photo taken from the window, the mirrored wardrobe faces the window, so it now stands in the alcove between the short wall and the corner, beside the door. The bed's head is against the kitchen side wall, near the window end, with the bedside table between it and the window wall.
+- Lounge: the built-in shelving now sits in a recess in the fireplace wall, its front flush with the wall. Recess depth 380 (the shelving depth) until measured.
+- Bedroom 2: the outside wall now lines up with the lounge's front wall where the bay starts, which makes the room about 4160 long against the plan's 3.57 m (about 590 more). The chimney breast stays against the outside wall, and the futon, bookshelf and side table move with it.
+- Hall rug turned to run along the hall, towards the lounge and bedroom 2 doors.
+- Lounge armchair moved next to the sofa's end, angled towards the TV, with the round side table between them.
+
 ## Still to measure
 
 Defaults, plan-scaled figures or photo estimates are in use for all of these.
+
+- Bedroom 2 length, from the hall wall to the outside wall. With the outside wall in line with the lounge it is about 4160, but the plan says 3.57 m, so a tape figure would settle it. If the plan is short at that end of the flat, it may also explain the lounge length (5.5 m measured against 5.10 m).
+- Lounge shelving recess: width and depth.
 
 - Lounge length: you measured about 5.5 m to the longest point; the plan says 5.10. Was that to the glass of the middle bay windows, or to the wall face beside them? If to the glass, the gap is probably the depth of the window reveals, and the outside walls are much thicker than the plan draws.
 - Kitchen and bathroom ceiling heights (3000 in use for "slightly less" than 3.2 m). In the kitchen photos the gap above the wall units looks smaller than 800, so the wall unit heights are worth measuring too (floor to top of the wall units).
