@@ -34,12 +34,20 @@
   li.item small { color: var(--muted); white-space: nowrap; }
   .tag { font-size: 10.5px; padding: 1px 6px; border-radius: 9px; background: var(--accent-soft); color: var(--accent); margin-left: 6px; }
   li.item.none { color: var(--muted); cursor: default; }
+  .btns { display: flex; flex-wrap: wrap; gap: 8px; }
+  .btn { border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 8px; padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+  .btn:hover { background: var(--bg); }
+  .btn.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+  #info .btns { margin-top: 10px; }
+  .tag.moved { background: #e8effd; color: var(--sel); }
   details summary { cursor: pointer; color: var(--muted); font-size: 13px; margin: 8px 0 4px; }
   .checks li { font-size: 12.5px; color: #9a3412; padding: 3px 0; }
   .file { display: inline-block; padding: 7px 12px; border: 1px dashed var(--muted); border-radius: 8px; cursor: pointer; color: var(--muted); font-size: 13px; }
   .file input { display: none; }
   #info { position: absolute; right: 16px; top: 16px; width: 260px; background: rgba(255,255,255,.96); border: 1px solid var(--line);
     border-radius: 10px; padding: 14px 16px; box-shadow: 0 6px 24px rgba(0,0,0,.08); }
+  #info { z-index: 5; }
+  #hint, #pad { z-index: 4; }
   #info h3 { margin: 0 0 6px; font-size: 15px; }
   #info dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; margin: 8px 0 0; font-size: 13px; }
   #info dt { color: var(--muted); }
@@ -103,6 +111,13 @@
       <ul class="checks" id="checks"></ul>
     </div>
 
+    <div id="moves" hidden>
+      <h2>Your layout</h2>
+      <p class="note" id="movesText"></p>
+      <div class="btns"><button id="saveLayout" class="btn primary">Save layout</button><button id="resetLayout" class="btn">Undo all moves</button></div>
+      <p class="note" style="margin-top:8px">Moves are kept in this browser until you undo them. Save layout downloads a flat.json with them in, ready to replace the one in the repo.</p>
+    </div>
+
     <h2>Data</h2>
     <label class="file">Preview a different flat.json<input type="file" id="file" accept=".json,application/json"></label>
     <p class="note" style="margin-top:8px">Sizes in mm. Wall numbers start at 0 from each room's first corner and go round in the order the corners are listed.</p>
@@ -157,6 +172,7 @@ const walkCam = new THREE.PerspectiveCamera(70, 1, 0.03, 200);
 walkCam.rotation.order = 'YXZ';
 const walk = { x: 0, y: 0, yaw: 0, pitch: 0, keys: new Set(), eye: 1600, r: 200, started: false };
 let colliders = [], ceilings = [];
+let orig = [], drag = null; // starting positions from flat.json, and the piece being dragged
 const ortho = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 300);
 ortho.up.set(0, 0, -1);
 
@@ -735,7 +751,7 @@ function renderLists(checks) {
   const total = flat.rooms.reduce((a, r) => a + (r.corners?.length > 2 ? Math.abs(polyArea(r.corners)) : 0), 0) / 1e6;
   $('rooms').innerHTML = flat.rooms.map((r, i) => `<li class="item" data-room="${i}">${esc(r.name || r.id)}<small>${r.corners?.length > 2 ? (Math.abs(polyArea(r.corners)) / 1e6).toFixed(1) + ' m²' : '?'}</small></li>`).join('')
     + `<li class="item" style="cursor:default"><b>Total floor area</b><small><b>${total.toFixed(1)} m²</b></small></li>`;
-  const item = (f, i) => `<li class="item" data-furn="${i}"><span>${esc(f.name)}${f.status === 'candidate' ? '<span class="tag">candidate</span>' : ''}</span><small>${f.w}×${f.d}</small></li>`;
+  const item = (f, i) => `<li class="item" data-furn="${i}"><span>${esc(f.name)}${f.status === 'candidate' ? '<span class="tag">candidate</span>' : ''}${isMoved(i) ? '<span class="tag moved">moved</span>' : ''}</span><small>${f.w}×${f.d}</small></li>`;
   const all = (flat.furniture || []).map((f, i) => [f, i]);
   const furn = all.filter(([f]) => f.status !== 'fixture' && f.status !== 'decor'), fix = all.filter(([f]) => f.status === 'fixture'), dec = all.filter(([f]) => f.status === 'decor');
   $('furn').innerHTML = furn.length ? furn.map(([f, i]) => item(f, i)).join('') : '<li class="item none">None yet</li>';
@@ -786,10 +802,107 @@ function select(g) {
       ${f.price ? `<dt>Price</dt><dd>${esc(f.price)}</dd>` : ''}
       ${f.source ? `<dt>Link</dt><dd><a href="${esc(f.source)}" target="_blank" rel="noopener">${esc(f.source)}</a></dd>` : ''}
       ${f.notes ? `<dt>Notes</dt><dd>${esc(f.notes)}</dd>` : ''}
-    </dl>`;
+    </dl>
+    ${movable(f) ? `<div class="btns"><button class="btn" data-turn="-15">⟲ Turn 15°</button><button class="btn" data-turn="15">⟳ Turn 15°</button>${isMoved(idx) ? '<button class="btn" data-undo>Undo move</button>' : ''}</div>
+    <p class="note" style="margin:8px 0 0">Drag it in Plan view to move it; R turns it.</p>` : ''}`;
   info.hidden = false;
   info.querySelector('.close').onclick = () => select(null);
+  info.querySelectorAll('[data-turn]').forEach(b => b.onclick = () => turnPiece(f, +b.dataset.turn));
+  const u = info.querySelector('[data-undo]'); if (u) u.onclick = () => { Object.assign(f, orig[idx]); if (!orig[idx].rot) delete f.rot; changed(f); };
 }
+
+// ---------- moving furniture ----------
+const movable = f => f && (f.status === 'owned' || f.status === 'candidate' || !f.status);
+const isMoved = i => { const f = flat.furniture[i], o = orig[i]; return !!(f && o && (f.x !== o.x || f.y !== o.y || (f.rot || 0) !== (o.rot || 0))); };
+const layoutKey = () => 'flat-layout:' + (flat.name || 'flat');
+function saveMoves() {
+  const pieces = {};
+  flat.furniture.forEach((f, i) => { if (isMoved(i)) pieces[i] = { name: f.name, x: f.x, y: f.y, rot: f.rot || 0 }; });
+  try { Object.keys(pieces).length ? localStorage.setItem(layoutKey(), JSON.stringify({ v: 1, pieces })) : localStorage.removeItem(layoutKey()); } catch (e) {}
+  const n = Object.keys(pieces).length;
+  $('moves').hidden = !n;
+  $('movesText').textContent = `${n} piece${n === 1 ? '' : 's'} moved from where flat.json has ${n === 1 ? 'it' : 'them'}.`;
+}
+function loadMoves() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(layoutKey()) || 'null'); } catch (e) {}
+  for (const [i, m] of Object.entries(saved?.pieces || {})) {
+    const f = flat.furniture[+i];
+    if (f && f.name === m.name && movable(f)) { f.x = m.x; f.y = m.y; if (m.rot) f.rot = m.rot; else delete f.rot; }
+  }
+}
+function changed(f) { // rebuild after a move or turn, keep the piece selected, remember the layout
+  build();
+  select(furnGroup.children.find(g => g.userData.f === f) || null);
+  saveMoves();
+}
+function turnPiece(f, deg) {
+  if (!movable(f)) return;
+  const r = (((f.rot || 0) + deg) % 360 + 360) % 360;
+  if (r) f.rot = r; else delete f.rot;
+  changed(f);
+}
+function groundPoint(e) { // where the pointer meets the floor, in plan millimetres
+  const r = renderer.domElement.getBoundingClientRect();
+  ptr.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1);
+  ray.setFromCamera(ptr, ortho);
+  const p = new THREE.Vector3();
+  return ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), p) ? [p.x / S, p.z / S] : null;
+}
+// capture phase, so this runs before the plan view's own panning
+labelRenderer.domElement.addEventListener('pointerdown', e => {
+  if (mode !== 'plan' || e.button > 0) return;
+  const r = renderer.domElement.getBoundingClientRect();
+  ptr.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1);
+  ray.setFromCamera(ptr, ortho);
+  let o = ray.intersectObjects(furnGroup.children.filter(c => c.visible && c.userData.f), true)[0]?.object;
+  while (o && !o.userData.f) o = o.parent;
+  const f = o?.userData.f, p = movable(f) && groundPoint(e);
+  if (!p) return;
+  drag = { f, g: o, dx: f.x - p[0], dy: f.y - p[1], moved: false };
+  ctlPlan.enabled = false;
+  select(o);
+}, { capture: true });
+addEventListener('pointermove', e => {
+  if (!drag) return;
+  const p = groundPoint(e); if (!p) return;
+  const x = Math.round((p[0] + drag.dx) / 5) * 5, y = Math.round((p[1] + drag.dy) / 5) * 5;
+  if (x === drag.f.x && y === drag.f.y) return;
+  drag.f.x = x; drag.f.y = y; drag.moved = true;
+  drag.g.position.set(x * S, (drag.f.z || 0) * S, y * S);
+  drag.g.userData.label?.position.set(x * S, ((drag.f.z || 0) + drag.f.h) * S + 0.05, y * S);
+});
+addEventListener('pointerup', () => {
+  if (!drag) return;
+  const d = drag; drag = null;
+  ctlPlan.enabled = mode === 'plan';
+  if (d.moved) changed(d.f);
+});
+addEventListener('keydown', e => {
+  if (e.target.closest?.('input, textarea') || mode === 'walk' || e.ctrlKey || e.metaKey) return;
+  if ((e.key === 'r' || e.key === 'R') && selected) { turnPiece(selected.userData.f, e.shiftKey ? -15 : 15); e.preventDefault(); }
+});
+// downloads flat.json laid out like the repo's copy: one room, opening or piece per line
+function flatText(d) {
+  const ser = v => Array.isArray(v) ? '[' + v.map(ser).join(', ') + ']'
+    : v && typeof v === 'object' ? '{' + Object.entries(v).map(([k, x]) => JSON.stringify(k) + ': ' + ser(x)).join(', ') + '}'
+    : JSON.stringify(v);
+  return '{\n' + Object.entries(d).map(([k, v]) => '  ' + JSON.stringify(k) + ': ' + (Array.isArray(v) ? '[\n' + v.map(x => '    ' + ser(x)).join(',\n') + '\n  ]' : ser(v))).join(',\n') + '\n}\n';
+}
+$('saveLayout').onclick = () => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([flatText(flat)], { type: 'application/json' }));
+  a.download = 'flat.json';
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+};
+$('resetLayout').onclick = () => {
+  if (!confirm('Put every piece back where flat.json has it?')) return;
+  flat.furniture.forEach((f, i) => { Object.assign(f, orig[i]); if (!orig[i].rot) delete f.rot; });
+  const s = selected?.userData.f;
+  build(); if (s) select(furnGroup.children.find(g => g.userData.f === s) || null);
+  saveMoves();
+};
 
 function setMode(m) {
   const changed = mode !== m;
@@ -812,7 +925,7 @@ function setMode(m) {
   $('wallh').disabled = m === 'walk';
   $('cross').hidden = $('pad').hidden = m !== 'walk';
   $('hint').textContent = m === '3d' ? 'Drag to orbit · right-drag to pan · scroll to zoom · click a piece for details'
-    : m === 'plan' ? 'Drag to pan · scroll to zoom · click a piece for details'
+    : m === 'plan' ? 'Drag furniture to move it · R to turn it · drag empty space to pan · scroll to zoom'
     : 'Click to look with the mouse (Esc to stop) · W A S D or arrow keys to walk · Shift to go faster · click a piece for details';
   if (m === 'walk' && !walk.started && bbox) { const h = flat.rooms.find(r => r.id === 'hall') || flat.rooms[0]; walkTo(h); walk.yaw = -Math.PI / 2; walk.started = true; }
   applyVisibility();
@@ -958,8 +1071,12 @@ function showError(msg) {
 function load(data) {
   if (!data || !Array.isArray(data.rooms)) { showError('The data needs a "rooms" list.'); return; }
   flat = data;
+  flat.furniture = flat.furniture || [];
+  orig = flat.furniture.map(f => ({ x: f.x, y: f.y, rot: f.rot || 0 }));
+  loadMoves();
   select(null);
   build();
+  saveMoves();
   frame();
   $('status').hidden = true;
 }

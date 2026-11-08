@@ -12,6 +12,7 @@ The viewer has:
 - a wall height slider for cutaway views (fittings and furniture are cut with the walls)
 - a Walk view: first person at eye height (1.6 m) with ceilings shown. Click to look with the mouse (Esc to stop), or drag; W A S D to move, arrow keys or Q and E to turn, Shift to go faster; on-screen arrows for touch. Walls and furniture block the way, doorways don't. Clicking a room in the list jumps there; clicking a piece under the crosshair shows its details
 - furniture you can click for size, price and link; pieces marked `candidate` can be hidden
+- moving furniture: in Plan view, drag an owned or candidate piece to move it (5 mm steps); R or the buttons in its details panel turn it 15° (Shift+R the other way). Moves are kept in the browser and the pieces are tagged "moved"; "Save layout" downloads a `flat.json` with the moves in, laid out like the repo's copy, and "Undo all moves" puts everything back. Fixed fittings and pictures can't be dragged
 - a "Checks" panel listing data problems (an opening past the end of its wall, a missing wall, a piece with no size)
 - a "Preview a different flat.json" button for trying a version without saving it
 
@@ -143,6 +144,7 @@ Without `model` a piece is drawn as a box of its stated size. With `model` the v
 
 ## Working rules
 
+- **`flat.json` is the source for the model.** Edit it directly, keeping its layout (one room, wall, opening or piece per line), so a layout I save from the viewer can replace it with a clean diff. When I send a saved `flat.json`, check it, then commit it in place of the old one.
 - **Keep the raw data.** When I give measurements, save them to `reference/measurements.md` exactly as given, with the date, before converting them. `flat.json` is derived; the notes are the source.
 - **Measurements beat the floorplan.** Use plans for layout and how rooms relate, but my measured figures for sizes. Where they disagree by more than about 50 mm, tell me instead of picking one or averaging.
 - **Don't invent figures.** If something needed is missing (a sill height, a wall thickness), use a sensible default, add it to a "Still to measure" list at the bottom of `reference/measurements.md`, and say so.
@@ -158,7 +160,7 @@ Without `model` a piece is drawn as a box of its stated size. With `model` the v
 2. **Existing furniture:** add the pieces I own, with sizes and positions from my notes and photos.
 3. **Candidate products:** search for pieces against a brief (type, maximum size, budget, style), saving each to `products/<slug>.json` with name, retailer, URL, price, dimensions and image URLs, then adding it to `flat.json` as `status: "candidate"`. Bright Data's MCP server is an option for scraping UK retailers at volume; plain web fetch is fine for a handful of products. Respect each site's terms.
 4. **Real 3D models:** for shortlisted pieces, use the manufacturer's own model where one exists; otherwise generate one from product photos (Meshy, Tripo, Hunyuan3D or similar), export as GLB to `models/`, and let the viewer scale it to the stated dimensions.
-5. **Possible later:** dragging furniture in the plan view with a way to copy the updated positions back into `flat.json`; per-room wall colours; materials from photos.
+5. **Possible later:** materials from photos. (Dragging furniture in plan view with saving back to `flat.json`, and per-room wall colours, are done.)
 
 ## Current state
 
