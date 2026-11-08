@@ -30,7 +30,7 @@ CLAUDE.md
 index.html            viewer
 flat.json             the model data
 reference/
-  floorplans/         scans or photos of plans
+  floorplans/         scans or photos of plans (floorplan.png is the agent's plan)
   photos/<room-id>/   room and furniture photos
   measurements.md     my raw measurements, as I gave them
 models/               .glb furniture models (optional, see below)
@@ -49,6 +49,7 @@ All sizes in millimetres. Coordinates follow a printed floorplan: x runs left to
   "note": "Shown under the title in the viewer",
   "defaults": { "ceilingHeight": 2800, "wallThickness": 100, "doorHeight": 2000 },
   "rooms": [ ... ],
+  "walls": [ ... ],
   "openings": [ ... ],
   "furniture": [ ... ]
 }
@@ -72,6 +73,16 @@ All sizes in millimetres. Coordinates follow a printed floorplan: x runs left to
 - Walls are drawn on the outside of each room's outline, `wallThickness[i]` thick. Where two rooms' walls overlap in a shared partition, that is expected.
 - Any shape works: an L-shaped room, a bay window or a chimney breast is just more corners. A chimney breast is modelled as the room outline stepping round it.
 
+### Freestanding walls
+
+For wall pieces that are not part of a room outline: nibs, part walls, the sides of a built-in cupboard.
+
+```jsonc
+{ "name": "Bathroom part wall", "from": [1490, 3340], "to": [1490, 4270], "thickness": 100, "height": 2000 }
+```
+
+- The wall is centred on the line from `from` to `to`. `thickness` defaults to `defaults.wallThickness`, `height` to `defaults.ceilingHeight`.
+
 ### Openings (doors and windows)
 
 ```jsonc
@@ -92,11 +103,13 @@ All sizes in millimetres. Coordinates follow a printed floorplan: x runs left to
   "w": 2100, "d": 900, "h": 850,  // width along x and depth along y before rotation
   "rot": 180,                     // degrees clockwise on the plan, optional
   "colour": "#6b7a8f",
-  "status": "owned",              // owned | candidate
+  "status": "owned",              // owned | candidate | fixture
   "price": "£599", "source": "https://...", "notes": "...",   // optional, shown in the details panel
   "model": "models/sofa.glb"      // optional, see below
 }
 ```
+
+`fixture` is for permanent parts of the flat that are not walls, such as a fireplace or fitted units. They are always shown.
 
 Without `model` a piece is drawn as a box of its stated size. With `model` the viewer loads the GLB and scales it to exactly `w` × `d` × `h`, falling back to a box if it fails to load.
 
@@ -107,6 +120,7 @@ Without `model` a piece is drawn as a box of its stated size. With `model` the v
 - **Don't invent figures.** If something needed is missing (a sill height, a wall thickness), use a sensible default, add it to a "Still to measure" list at the bottom of `reference/measurements.md`, and say so.
 - **Check against photos.** Use room photos to confirm what is on each wall, the order of doors and windows, and finishes and colours. Flag anything that contradicts the measurements.
 - **Check every change.** After editing `flat.json`: validate the JSON, confirm the viewer's Checks panel is empty, confirm each room's internal wall lengths in plan view match the measurements, and, if a headless browser is available, take a screenshot of both views and look at it.
+- **Permanent fixtures only, keep it clean.** In the model and in any renders or screenshots, leave out clutter, people and anything movable that appears in photos or plans. Keep only what looks permanent: walls, doors, windows, fireplaces, built-in cupboards, fitted kitchen and bathroom fittings, radiators. Furniture comes in only when I ask for it (roadmap step 2 onwards).
 - **Walls that should meet.** Rooms either side of a partition should be exactly one wall thickness apart. Work out room positions from shared walls and measured thicknesses (measure in a door frame for internal walls, in a window reveal for external ones) rather than assuming.
 - Writing for me: British spelling, plain wording, no em dashes.
 
@@ -120,4 +134,4 @@ Without `model` a piece is drawn as a box of its stated size. With `model` the v
 
 ## Current state
 
-`flat.json` holds a made-up five-room placeholder that shows the format. None of it is my flat. Start with roadmap step 1.
+Roadmap step 1 is in progress. `flat.json` holds the real layout traced from `reference/floorplans/floorplan.png`: seven rooms (including the hall cupboard), all doors and windows, nibs and cupboard walls, and the lounge fireplace. Room sizes are the plan's printed figures; everything else is scaled from the plan. No tape measurements or photos yet. Next: my measurements and photos, working through the "Still to measure" list in `reference/measurements.md`.

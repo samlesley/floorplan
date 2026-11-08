@@ -33,6 +33,7 @@
   li.item.sel { background: #e8effd; }
   li.item small { color: var(--muted); white-space: nowrap; }
   .tag { font-size: 10.5px; padding: 1px 6px; border-radius: 9px; background: var(--accent-soft); color: var(--accent); margin-left: 6px; }
+  .tag.fix { background: #ecebe7; color: var(--muted); }
   .checks li { font-size: 12.5px; color: #9a3412; padding: 3px 0; }
   .file { display: inline-block; padding: 7px 12px; border: 1px dashed var(--muted); border-radius: 8px; cursor: pointer; color: var(--muted); font-size: 13px; }
   .file input { display: none; }
@@ -84,7 +85,7 @@
     <h2>Rooms</h2>
     <ul id="rooms"></ul>
 
-    <h2>Furniture</h2>
+    <h2>Furniture and fixtures</h2>
     <ul id="furn"></ul>
 
     <div id="checksWrap" hidden>
@@ -189,13 +190,19 @@ function roomEdges(room) {
     if (inside([p[0] + dx / 2 + nn[0] * 5, p[1] + dy / 2 + nn[1] * 5], c)) nn = [-nn[0], -nn[1]];
     return { room, i, p, q, d, n: nn, L, t: thick(room, i), cuts: [] };
   });
-  // extend walls at convex corners so the corner block is filled
+  // extend walls at convex corners so their outer faces meet (works at any angle, e.g. bay windows)
+  const cross = (a, b) => a[0] * b[1] - a[1] * b[0];
+  const meet = (c, a, b) => { // how far wall a must run past corner c to reach wall b's outer face
+    const den = cross(a.d, b.d);
+    if (Math.abs(den) < 1e-6) return 0;
+    const pa = [c[0] + a.n[0] * a.t, c[1] + a.n[1] * a.t], pb = [c[0] + b.n[0] * b.t, c[1] + b.n[1] * b.t];
+    return cross([pb[0] - pa[0], pb[1] - pa[1]], b.d) / den;
+  };
   es.forEach((e, i) => {
     const prev = es[(i - 1 + n) % n], next = es[(i + 1) % n];
-    const crossStart = prev.d[0] * e.d[1] - prev.d[1] * e.d[0];
-    const crossEnd = e.d[0] * next.d[1] - e.d[1] * next.d[0];
-    e.extStart = crossStart * A > 0 ? prev.t : 0;
-    e.extEnd = crossEnd * A > 0 ? next.t : 0;
+    const lim = 3 * Math.max(e.t, prev.t, next.t);
+    e.extStart = cross(prev.d, e.d) * A > 0 ? Math.min(lim, Math.max(0, -meet(e.p, e, prev))) : 0;
+    e.extEnd = cross(e.d, next.d) * A > 0 ? Math.min(lim, Math.max(0, meet(e.q, e, next))) : 0;
   });
   return es;
 }
@@ -263,6 +270,17 @@ function build() {
     const mx = e.p[0] + e.d[0] * e.L / 2 - e.n[0] * 220, my = e.p[1] + e.d[1] * e.L / 2 - e.n[1] * 220;
     lab.position.set(mx * S, 0.02, my * S);
     building.add(lab); wallLabels.push(lab);
+  }
+
+  // freestanding walls (nibs, stubs, cupboard fronts): centred on the line from -> to
+  for (const w of flat.walls || []) {
+    const [x0, y0] = w.from || [], [x1, y1] = w.to || [];
+    const L = Math.hypot(x1 - x0, y1 - y0);
+    if (!(L > 0)) { checks.push(`Wall "${w.name || '?'}" needs different from and to points.`); continue; }
+    const t = w.thickness ?? flat.defaults?.wallThickness ?? 100;
+    const d = [(x1 - x0) / L, (y1 - y0) / L], n = [d[1], -d[0]];
+    const e = { p: [x0 - n[0] * t / 2, y0 - n[1] * t / 2], d, n, t, L };
+    slab(e, 0, L, 0, (w.height ?? flat.defaults?.ceilingHeight ?? 2700) * wallFactor);
   }
 
   // floors and room labels
@@ -342,12 +360,13 @@ function addFurniture(f) {
   g.rotation.y = -THREE.MathUtils.degToRad(f.rot || 0);
   g.userData.f = f;
   const cand = f.status === 'candidate';
+  const fixed = f.status === 'fixture';
   const box = () => {
     const geo = new THREE.BoxGeometry(f.w * S, f.h * S, f.d * S);
     const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: f.colour || '#9a9a9a', roughness: 0.7, transparent: cand, opacity: cand ? 0.8 : 1 }));
     m.position.y = f.h * S / 2;
     m.castShadow = m.receiveShadow = true;
-    m.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({ color: cand ? '#c2410c' : '#4a4a4a' })));
+    m.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({ color: cand ? '#c2410c' : fixed ? '#7d776d' : '#4a4a4a' })));
     return m;
   };
   if (f.model) {
@@ -381,7 +400,7 @@ function renderLists(checks) {
   const total = flat.rooms.reduce((a, r) => a + (r.corners?.length > 2 ? Math.abs(polyArea(r.corners)) : 0), 0) / 1e6;
   $('rooms').innerHTML = flat.rooms.map((r, i) => `<li class="item" data-room="${i}">${esc(r.name || r.id)}<small>${r.corners?.length > 2 ? (Math.abs(polyArea(r.corners)) / 1e6).toFixed(1) + ' m²' : '?'}</small></li>`).join('')
     + `<li class="item" style="cursor:default"><b>Total floor area</b><small><b>${total.toFixed(1)} m²</b></small></li>`;
-  $('furn').innerHTML = (flat.furniture || []).map((f, i) => `<li class="item" data-furn="${i}"><span>${esc(f.name)}${f.status === 'candidate' ? '<span class="tag">candidate</span>' : ''}</span><small>${f.w}×${f.d}</small></li>`).join('');
+  $('furn').innerHTML = (flat.furniture || []).map((f, i) => `<li class="item" data-furn="${i}"><span>${esc(f.name)}${f.status === 'candidate' ? '<span class="tag">candidate</span>' : ''}${f.status === 'fixture' ? '<span class="tag fix">fixture</span>' : ''}</span><small>${f.w}×${f.d}</small></li>`).join('');
   $('checksWrap').hidden = !checks.length;
   $('checks').innerHTML = checks.map(c => `<li>${esc(c)}</li>`).join('');
 }
@@ -414,7 +433,7 @@ function select(g) {
   const room = flat.rooms.find(r => r.id === f.room);
   info.innerHTML = `<button class="close" aria-label="Close">×</button><h3>${esc(f.name)}</h3>
     <dl>
-      <dt>Status</dt><dd>${f.status === 'candidate' ? 'Candidate' : 'Owned'}</dd>
+      <dt>Status</dt><dd>${{ candidate: 'Candidate', fixture: 'Fixture (part of the flat)' }[f.status] || 'Owned'}</dd>
       ${room ? `<dt>Room</dt><dd>${esc(room.name)}</dd>` : ''}
       <dt>Size</dt><dd>${f.w} W × ${f.d} D × ${f.h} H mm</dd>
       <dt>Position</dt><dd>x ${f.x}, y ${f.y}${f.rot ? `, ${f.rot}°` : ''}</dd>
