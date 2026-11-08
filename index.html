@@ -407,9 +407,9 @@ function build() {
   // furniture
   for (const f of flat.furniture || []) {
     if (!(f.w > 0 && f.d > 0 && f.h > 0)) { checks.push(`"${f.name}" needs w, d and h.`); continue; }
-    // fixed fittings follow the wall cut (slider, or 1200 mm in plan view), so wall cupboards don't float above cut walls
-    let top = Infinity;
-    if (f.status === 'fixture') { const r = flat.rooms.find(r => r.id === f.room); top = Math.min(planCut(), (r ? ceiling(r) : flat.defaults?.ceilingHeight ?? 2700) * wallFactor); }
+    // pieces follow the wall cut (slider, or 1200 mm in plan view), so wall cupboards and wardrobes don't stand above cut walls
+    const r = flat.rooms.find(r => r.id === f.room);
+    const top = Math.min(planCut(), (r ? ceiling(r) : flat.defaults?.ceilingHeight ?? 2700) * wallFactor);
     if ((f.z || 0) >= top) continue;
     addFurniture(f, Math.min(f.h, top - (f.z || 0)));
   }
@@ -552,12 +552,15 @@ function addFurniture(f, hShown = f.h) {
     const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: f.colour || '#9a9a9a', roughness: f.roughness ?? 0.7, metalness: f.metalness ?? 0, transparent: op < 1, opacity: op }));
     m.position.y = hShown * S / 2;
     m.castShadow = op === 1; m.receiveShadow = true;
-    if (!fixed) m.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({ color: cand ? '#c2410c' : '#4a4a4a' })));
+    if (cand) m.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({ color: '#c2410c' })));
     return m;
   };
   if (f.kind === 'radiator') { g.add(radiator(f)); }
-  else 
-  if (f.model) {
+  else if (!f.model && shapes[f.kind]) {
+    g.add(shapes[f.kind](f, (c, o = {}) => mat(c, cand ? { ...o, transparent: true, opacity: 0.8 } : o)));
+    if (cand) { const geo = new THREE.BoxGeometry(f.w * S, f.h * S, f.d * S); const l = new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({ color: '#c2410c' })); l.position.y = f.h * S / 2; g.add(l); }
+  }
+  else if (f.model) {
     loader.load(f.model, gltf => {
       const obj = gltf.scene;
       obj.traverse(o => { if (o.isMesh) { o.castShadow = o.receiveShadow = true; } });
@@ -577,6 +580,81 @@ function addFurniture(f, hShown = f.h) {
   furnLabels.push(lab);
   g.userData.label = lab;
 }
+
+// simple furniture shapes, in the piece's own frame: x across its width, z from back (-d/2) to front (+d/2), y up
+function part(g, material, x0, x1, y0, y1, z0, z1) {
+  if (x1 - x0 < 0.5 || y1 - y0 < 0.5 || z1 - z0 < 0.5) return;
+  const b = new THREE.Mesh(new THREE.BoxGeometry((x1 - x0) * S, (y1 - y0) * S, (z1 - z0) * S), material);
+  b.position.set((x0 + x1) / 2 * S, (y0 + y1) / 2 * S, (z0 + z1) / 2 * S);
+  b.castShadow = b.receiveShadow = true;
+  g.add(b);
+}
+const legsMat = M => M('#3a2a1e', { roughness: 0.6 });
+const shapes = {
+  sofa(f, M) { // also armchairs and benches
+    const g = new THREE.Group(), w = f.w / 2, d = f.d / 2, h = f.h, up = M(f.colour || '#8a8f8a', { roughness: 0.95 });
+    const cush = M(new THREE.Color(f.colour || '#8a8f8a').offsetHSL(0, 0, 0.04).getStyle(), { roughness: 0.95 });
+    const arm = Math.min(170, f.w * 0.18), back = Math.min(230, f.d * 0.28), leg = 90;
+    part(g, up, -w, w, leg, 400, -d, d);                                   // base
+    part(g, cush, -w + arm, w - arm, 400, 470, -d + back, d);              // seat cushions
+    part(g, up, -w, w, leg, h, -d, -d + back);                             // back
+    for (const sx of [-1, 1]) part(g, up, sx > 0 ? w - arm : -w, sx > 0 ? w : -w + arm, leg, Math.min(h, 620), -d, d); // arms
+    const L = legsMat(M);
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) part(g, L, sx * w - (sx > 0 ? 60 : -0), sx * w + (sx > 0 ? 0 : 60), 0, leg, sz * d - (sz > 0 ? 60 : 0), sz * d + (sz > 0 ? 0 : 60));
+    return g;
+  },
+  bed(f, M) {
+    const g = new THREE.Group(), w = f.w / 2, d = f.d / 2, frame = M(f.colour || '#6a4a32', { roughness: 0.6 });
+    part(g, frame, -w, w, 0, 300, -d, d);                                  // base and frame
+    part(g, frame, -w, w, 0, f.h, -d, -d + 60);                            // headboard
+    part(g, M('#f3f1ec', { roughness: 0.95 }), -w + 30, w - 30, 300, 520, -d + 60, d - 30);   // mattress
+    part(g, M(f.colour2 || '#e6e2da', { roughness: 1 }), -w + 10, w - 10, 470, 560, -d + 520, d - 10); // duvet
+    const pw = (f.w - 140) / 2;
+    for (const sx of [-1, 1]) part(g, M('#fbfaf7', { roughness: 1 }), sx > 0 ? 20 : -20 - pw, sx > 0 ? 20 + pw : -20, 520, 640, -d + 90, -d + 470); // pillows
+    return g;
+  },
+  table(f, M) {
+    const g = new THREE.Group(), w = f.w / 2, d = f.d / 2, h = f.h, top = M(f.colour || '#8a5a32', { roughness: 0.5 }), leg = M(f.colour2 || f.colour || '#8a5a32', { roughness: 0.5 });
+    if (f.shape === 'round') {
+      const t = new THREE.Mesh(new THREE.CylinderGeometry(w * S, w * S, 30 * S, 40), top); t.position.y = (h - 15) * S; t.castShadow = t.receiveShadow = true; g.add(t);
+      const p = new THREE.Mesh(new THREE.CylinderGeometry(35 * S, 35 * S, (h - 30) * S, 16), leg); p.position.y = (h - 30) / 2 * S; p.castShadow = true; g.add(p);
+      const b = new THREE.Mesh(new THREE.CylinderGeometry(w * 0.55 * S, w * 0.6 * S, 25 * S, 24), leg); b.position.y = 12 * S; g.add(b);
+    } else {
+      part(g, top, -w, w, h - 30, h, -d, d);
+      if (f.style === 'solid') part(g, top, -w + 20, w - 20, 0, h - 30, -d + 20, d - 20);   // a low table with drawers or a cabinet base
+      else for (const sx of [-1, 1]) for (const sz of [-1, 1]) part(g, leg, sx > 0 ? w - 75 : -w + 30, sx > 0 ? w - 30 : -w + 75, 0, h - 30, sz > 0 ? d - 75 : -d + 30, sz > 0 ? d - 30 : -d + 75);
+    }
+    return g;
+  },
+  chair(f, M) {
+    const g = new THREE.Group(), w = f.w / 2, d = f.d / 2, m = M(f.colour || '#6b4a32', { roughness: 0.6 }), seat = 450;
+    part(g, m, -w, w, seat - 40, seat, -d, d);
+    part(g, m, -w, w, seat, f.h, -d, -d + 45);
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) part(g, M(f.colour2 || f.colour || '#6b4a32', { roughness: 0.6 }), sx > 0 ? w - 40 : -w, sx > 0 ? w : -w + 40, 0, seat - 40, sz > 0 ? d - 40 : -d, sz > 0 ? d : -d + 40);
+    return g;
+  },
+  rug(f, M) {
+    const g = new THREE.Group(), w = f.w / 2, d = f.d / 2, h = f.h || 8;
+    part(g, M(f.colour || '#c9b79c', { roughness: 1 }), -w, w, 0, h, -d, d);
+    if (f.colour2) part(g, M(f.colour2, { roughness: 1 }), -w + 120, w - 120, h, h + 1, -d + 120, d - 120);
+    g.traverse(o => { if (o.isMesh) o.castShadow = false; });
+    return g;
+  },
+  tv(f, M) {
+    const g = new THREE.Group(), w = f.w / 2, black = M('#141516', { roughness: 0.3 });
+    part(g, black, -w, w, 90, f.h, -20, 20);                                // screen
+    part(g, black, -40, 40, 25, 90, -25, 15);                               // neck
+    part(g, black, -w * 0.35, w * 0.35, 0, 25, -f.d / 2, f.d / 2);         // foot
+    return g;
+  },
+  shelves(f, M) { // open shelving: corner posts and boards
+    const g = new THREE.Group(), w = f.w / 2, d = f.d / 2, post = M(f.colour || '#55625a', { roughness: 0.5 }), board = M(f.colour2 || f.colour || '#c8a46e', { roughness: 0.7 });
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) part(g, post, sx > 0 ? w - 35 : -w, sx > 0 ? w : -w + 35, 0, f.h, sz > 0 ? d - 35 : -d, sz > 0 ? d : -d + 35);
+    const n = f.shelves || 5;
+    for (let i = 0; i < n; i++) { const y = 80 + (f.h - 110) * i / (n - 1); part(g, board, -w, w, y, y + 25, -d, d); }
+    return g;
+  },
+};
 
 function radiator(f) {
   const g = new THREE.Group(), m = mat(f.colour || '#f2f1ec', { roughness: 0.45 });
