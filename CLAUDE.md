@@ -9,7 +9,7 @@ The whole flat is described in one data file, `flat.json`. `index.html` is a thr
 The viewer has:
 - a 3D view (orbit, pan, zoom) and a plan view that shows each wall's number and internal length. Plan view cuts everything at 1200 mm, like an architect's plan, so doors, worktops and windows show and wall cupboards and cornices don't
 - realistic finishes: textured floors, wall colours, skirting, picture rails, panelling, cornices, window frames and sills, door frames and door leaves
-- a wall height slider for cutaway views (fixed fittings are cut with the walls)
+- a wall height slider for cutaway views (fittings and furniture are cut with the walls)
 - furniture you can click for size, price and link; pieces marked `candidate` can be hidden
 - a "Checks" panel listing data problems (an opening past the end of its wall, a missing wall, a piece with no size)
 - a "Preview a different flat.json" button for trying a version without saving it
@@ -132,7 +132,8 @@ For wall pieces that are not part of a room outline: nibs, part walls, the sides
 
 Extra fields for any piece:
 - `"z": 1500`: height of its underside above the floor (wall cupboards, shelves, mirrors).
-- `"kind": "radiator"` with `"style": "panel" | "column"`: drawn as a radiator rather than a plain box.
+- `"kind"` draws a simple shape instead of a box: `"radiator"` (with `"style": "panel" | "column"`), `"sofa"` (also armchairs and benches), `"bed"`, `"table"` (`"shape": "round"`, or `"style": "solid"` for a cabinet-style base), `"chair"`, `"rug"`, `"tv"`, `"shelves"` (open shelving, `"shelves": 6`). `"colour2"` is the second colour: bedding, table legs, shelf boards, a rug's centre.
+- At `rot` 0 a piece's front faces down the plan (+y); `rot` 90 faces left (-x), 180 up, 270 right.
 - `"opacity": 0.3`, `"metalness": 0.6`, `"roughness": 0.2`: for glass, stainless steel, gloss.
 
 Without `model` a piece is drawn as a box of its stated size. With `model` the viewer loads the GLB and scales it to exactly `w` × `d` × `h`, falling back to a box if it fails to load.
@@ -158,4 +159,4 @@ Without `model` a piece is drawn as a box of its stated size. With `model` the v
 
 ## Current state
 
-Roadmap step 1 is nearly done. `flat.json` holds the real layout traced from `reference/floorplans/floorplan.png` (seven rooms including the hall cupboard, all doors and windows, nibs and cupboard walls), dressed from the room photos in `reference/photos/`: wall colours, picture rails, cornices, floors, door leaves, window frames, and the fixed fittings (fireplace, built-in shelving, kitchen units, bathroom fittings, radiators). Room sizes are the plan's printed figures; positions are scaled from the plan; colours and most fittings are estimated from photos. First measurements are in (ceiling heights, lounge window widths, the bathroom utility area); the lounge length disagrees with the plan and is waiting on an answer. Next: my measurements, working through the "Still to measure" list in `reference/measurements.md`.
+Roadmap step 1 is nearly done. `flat.json` holds the real layout traced from `reference/floorplans/floorplan.png` (seven rooms including the hall cupboard, all doors and windows, nibs and cupboard walls), dressed from the room photos in `reference/photos/`: wall colours, picture rails, cornices, floors, door leaves, window frames, and the fixed fittings (fireplace, built-in shelving, kitchen units, bathroom fittings, radiators). Room sizes are the plan's printed figures; positions are scaled from the plan; colours and most fittings are estimated from photos. First measurements are in (ceiling heights, lounge window widths, the bathroom utility area); the lounge length disagrees with the plan and is waiting on an answer. Roadmap step 2 has started: the furniture seen in the photos is in as `owned` pieces, with sizes and positions estimated. Next: my measurements, working through the "Still to measure" list in `reference/measurements.md`.

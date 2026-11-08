@@ -66,6 +66,18 @@ How these were used:
 - Lounge windows: taken as 700 of glass, so each opening is 810 including the frame, centred on its side of the bay (positions not yet measured).
 - Bathroom, measured from the bathroom side of the door threshold: utility counter runs from 1600 to 2480 from the door wall (880 long, washing machine 600 plus cupboard 280), then the partition, now 260 thick (the plan drew about 110). The partition's centre is 20 mm from where the plan puts it. The bath now runs 1380 from the window wall to the partition.
 
+## 2026-11-08: furniture seen in the photos
+
+Added to `flat.json` as `owned` pieces. Every size and position is estimated from the photos, except the sofa, whose back is 2 m from the bay window (measured). Left out as clutter: boxes, bags, laundry, towels, ornaments, pictures, lamps, plants, the clothes airer, the leaning mirror, the step stool, cat things.
+
+| Room | Pieces |
+|------|--------|
+| Lounge | Pale sage three-seat sofa facing the TV wall; walnut coffee table (two parts) on a beige rug; walnut TV unit and TV between the hall and kitchen doors; oak record cabinet left of the fireplace; wooden armchair and round side table by the radiator; oak bureau bookcase on the wall opposite the fireplace, near the bay; dining table and three chairs in the bay |
+| Kitchen | Green metal shelving unit with wooden shelves and a pedal bin by the lounge door; red rug |
+| Hall | Red upholstered bench and round side table on the kitchen wall; dark green patterned rug |
+| Bedroom 1 | Double bed with its head on the window wall; bedside table; mirrored sliding wardrobe on the kitchen side wall; navy bookcase by the radiator |
+| Bedroom 2 | Futon sofa bed on the lounge side wall; low bookshelf by the window; pine side table; cream rug; dark wood wardrobe; desk and desk chair on the hall wall |
+
 ## Still to measure
 
 Defaults, plan-scaled figures or photo estimates are in use for all of these.
@@ -85,3 +97,4 @@ Defaults, plan-scaled figures or photo estimates are in use for all of these.
 - Bedroom 2: the solid block in the lower right corner (1410 x 290 scaled).
 - Hall: the high shelf (depth and height) and radiator position; the hall cupboard inside size (about 1230 x 1340 scaled).
 - Radiator sizes and positions in every room (estimated from photos).
+- Furniture: width, depth and height of each piece, and where it sits (distance from two walls), most usefully the sofa, coffee table, TV unit, bed, wardrobes and desk.
