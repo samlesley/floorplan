@@ -8,7 +8,7 @@
     {"id": "lounge", "name": "Lounge", "floor": "timber", "floorColour": "#c99d68", "floorRuns": "x", "finish": {"wall": "#34495f", "upper": "#f1eee7", "pictureRail": 2450, "cornice": 260, "skirting": 230}, "corners": [[7100, 0], [10200, 0], [10200, -380], [11100, -380], [11100, 0], [11260, 0], [11930, 860], [12200, 1865], [11930, 2870], [11260, 3730], [7100, 3730]], "wallThickness": [150, 150, 150, 150, 150, 150, 150, 150, 150, 100, 100]},
     {"id": "hall", "name": "Hall", "floor": "timber", "floorColour": "#cfa572", "floorRuns": "y", "finish": {"wall": "#efe6d6", "pictureRail": 2450, "cornice": 200, "skirting": 230}, "corners": [[4220, 2080], [7000, 2080], [7000, 4790], [5620, 4790], [5620, 5150], [4220, 5150]], "wallThickness": [100, 100, 160, 150, 150, 100]},
     {"id": "bathroom", "name": "Bathroom", "ceilingHeight": 3000, "floor": "checker", "floorColour": "#efeee8", "floorColour2": "#1c1c1e", "tileSize": 300, "finish": {"wall": "#d8dad2", "skirting": 0, "dado": {"height": 1150, "colour": "#1f3b32"}}, "corners": [[0, 3340], [4120, 3340], [4120, 5150], [0, 5150]], "wallThickness": [100, 100, 150, 150]},
-    {"id": "bedroom2", "name": "Bedroom 2", "floor": "carpet", "floorColour": "#bdb8af", "finish": {"wall": "#9fb2a4", "upper": "#f1eee7", "pictureRail": 2450, "cornice": 220, "skirting": 230}, "corners": [[7100, 3830], [11260, 3830], [11260, 6000], [9850, 6000], [9850, 6290], [7100, 6290]], "wallThickness": [100, 150, 440, 150, 150, 100]},
+    {"id": "bedroom2", "name": "Bedroom 2", "floor": "carpet", "floorColour": "#bdb8af", "finish": {"wall": "#9fb2a4", "upper": "#f1eee7", "pictureRail": 2450, "cornice": 220, "skirting": 230}, "corners": [[7100, 3830], [11260, 3830], [11260, 4730], [11610, 4730], [11610, 5880], [11260, 5880], [11260, 6000], [9850, 6000], [9850, 6290], [7100, 6290]], "wallThickness": [100, 150, 150, 150, 150, 150, 440, 150, 150, 100]},
     {"id": "hallcupboard", "name": "Hall cupboard", "floor": "timber", "floorColour": "#cfa572", "floorRuns": "y", "finish": {"wall": "#efe6d6", "skirting": 150}, "corners": [[5770, 4950], [7000, 4950], [7000, 6290], [5770, 6290]], "wallThickness": [160, 100, 150, 150]}
   ],
   "walls": [
@@ -34,7 +34,7 @@
     {"type": "window", "room": "lounge", "wall": 6, "offset": 115, "width": 810, "sill": 600, "height": 1800, "frame": "#9c6b3d", "transom": 0.62},
     {"type": "window", "room": "lounge", "wall": 7, "offset": 115, "width": 810, "sill": 600, "height": 1800, "frame": "#9c6b3d", "transom": 0.62},
     {"type": "window", "room": "lounge", "wall": 8, "offset": 140, "width": 810, "sill": 600, "height": 1800, "frame": "#9c6b3d", "transom": 0.62},
-    {"type": "window", "room": "bedroom2", "wall": 1, "offset": 730, "width": 920, "sill": 600, "height": 1850, "frame": "#9c6b3d", "transom": 0.5}
+    {"type": "window", "room": "bedroom2", "wall": 3, "offset": 115, "width": 920, "sill": 600, "height": 1850, "frame": "#9c6b3d", "transom": 0.5}
   ],
   "furniture": [
     {"name": "Fireplace hearth", "room": "lounge", "x": 9120, "y": 225, "w": 1250, "d": 450, "h": 90, "colour": "#6d1f2b", "status": "fixture"},
@@ -119,8 +119,8 @@
     {"name": "Bedside table", "room": "bedroom1", "x": 700, "y": 200, "w": 450, "d": 400, "h": 550, "colour": "#6a4630", "status": "owned", "notes": "Size and position estimated from photos"},
     {"name": "Wardrobe (mirrored sliding doors)", "room": "bedroom1", "x": 3790, "y": 990, "w": 1950, "d": 660, "h": 2360, "rot": 90, "colour": "#c9cdd1", "status": "owned", "metalness": 0.5, "roughness": 0.2, "notes": "Size and position estimated from photos"},
     {"name": "Bookcase", "room": "bedroom1", "x": 1600, "y": 3075, "w": 800, "d": 280, "h": 2370, "rot": 180, "colour": "#24375a", "status": "owned", "notes": "Size and position estimated from photos"},
-    {"name": "Futon sofa bed", "room": "bedroom2", "x": 10515, "y": 4270, "w": 1400, "d": 900, "h": 800, "colour": "#9e4a35", "status": "owned", "kind": "sofa", "notes": "Size and position estimated from photos"},
-    {"name": "Low bookshelf", "room": "bedroom2", "x": 11110, "y": 4200, "w": 450, "d": 300, "h": 800, "rot": 90, "colour": "#c49a66", "status": "owned", "notes": "Size and position estimated from photos"},
+    {"name": "Futon sofa bed", "room": "bedroom2", "x": 10560, "y": 4280, "w": 1400, "d": 900, "h": 800, "colour": "#9e4a35", "status": "owned", "kind": "sofa", "notes": "Runs up to the window wall (confirmed 2026-11-08); size estimated from photos"},
+    {"name": "Low bookshelf", "room": "bedroom2", "x": 11435, "y": 4960, "w": 450, "d": 300, "h": 600, "rot": 90, "colour": "#c49a66", "status": "owned", "notes": "Sits inside the window recess, under the sill (confirmed 2026-11-08); size estimated from photos"},
     {"name": "Side table", "room": "bedroom2", "x": 9555, "y": 4080, "w": 500, "d": 400, "h": 500, "colour": "#b07a45", "status": "owned", "kind": "table", "style": "solid", "notes": "Size and position estimated from photos"},
     {"name": "Rug", "room": "bedroom2", "x": 9600, "y": 5050, "w": 2600, "d": 850, "h": 8, "colour": "#e8e1d0", "status": "owned", "kind": "rug", "notes": "Size and position estimated from photos"},
     {"name": "Wardrobe", "room": "bedroom2", "x": 9280, "y": 5980, "w": 1000, "d": 550, "h": 1850, "rot": 180, "colour": "#5b3520", "status": "owned", "notes": "Size and position estimated from photos"},
@@ -139,7 +139,7 @@
     {"name": "Curtain", "room": "bedroom1", "x": 70, "y": 640, "w": 350, "d": 120, "h": 2500, "rot": 90, "colour": "#7a2a2a", "status": "fixture", "kind": "curtain"},
     {"name": "Curtain", "room": "bedroom1", "x": 70, "y": 1695, "w": 400, "d": 120, "h": 2500, "rot": 90, "colour": "#7a2a2a", "status": "fixture", "kind": "curtain"},
     {"name": "Curtain", "room": "bedroom1", "x": 70, "y": 2510, "w": 180, "d": 120, "h": 2500, "rot": 90, "colour": "#7a2a2a", "status": "fixture", "kind": "curtain"},
-    {"name": "Roller blind", "room": "bedroom2", "x": 11285, "y": 5020, "w": 920, "d": 20, "h": 740, "z": 1710, "rot": 90, "colour": "#bcd6dc", "status": "fixture"},
+    {"name": "Roller blind", "room": "bedroom2", "x": 11635, "y": 5305, "w": 920, "d": 20, "h": 740, "z": 1710, "rot": 90, "colour": "#bcd6dc", "status": "fixture"},
     {"name": "Curtain over the front door", "room": "hall", "x": 5050, "y": 5100, "w": 1140, "d": 80, "h": 2250, "colour": "#a99470", "status": "fixture", "kind": "curtain"},
     {"name": "Overmantel mirror", "room": "lounge", "x": 9120, "y": 20, "w": 950, "d": 40, "h": 850, "z": 1330, "colour": "#b07a45", "status": "decor", "kind": "picture", "colour2": "#d5dade", "mirror": true},
     {"name": "Speaker", "room": "lounge", "x": 7310, "y": 970, "w": 180, "d": 250, "h": 300, "z": 480, "rot": 270, "colour": "#2a2a2a", "status": "owned"},

@@ -104,12 +104,21 @@ How these were used:
 
 Added after a second pass over the photos, all estimated: pendant lights (lounge dome shade with ceiling rose, stained glass shade in the hall, drum shade in bedroom 1, paper globe in bedroom 2); Roman blinds half down in the bay; dark red curtains in bedroom 1; café curtains on the bathroom windows; roller blind part down in bedroom 2; curtain over the front door recess; overmantel mirror; speakers either side of the TV; wooden cube shelf in the kitchen; green border tiles round the bath; bracket shelves and the monitor in bedroom 2; picture walls in the lounge, hall and both bedrooms, and the oval mirror in the hall. Picture positions and sizes are approximate.
 
+## 2026-11-08: bedroom 2 window
+
+As given:
+
+> the window in the bedrom is actually recessed, and the bookshelf sits inside the recess, the sofa goes up to the walll
+
+How it was used: the window now sits at the back of a recess in the outside wall, 1150 wide and 350 deep (both estimated), starting where the futon ends, so the futon runs right up to the wall beside it. The low bookshelf sits inside the recess under the window; its height is now 600 so it fits under the sill.
+
 ## Still to measure
 
 Defaults, plan-scaled figures or photo estimates are in use for all of these.
 
 - Bedroom 2 length, from the hall wall to the outside wall. With the outside wall in line with the lounge it is about 4160, but the plan says 3.57 m, so a tape figure would settle it. If the plan is short at that end of the flat, it may also explain the lounge length (5.5 m measured against 5.10 m).
 - Lounge shelving recess: width and depth.
+- Bedroom 2 window recess: width, depth, and the distance from the futon wall to the recess; the low bookshelf's height.
 
 - Lounge length: you measured about 5.5 m to the longest point; the plan says 5.10. Was that to the glass of the middle bay windows, or to the wall face beside them? If to the glass, the gap is probably the depth of the window reveals, and the outside walls are much thicker than the plan draws.
 - Kitchen and bathroom ceiling heights (3000 in use for "slightly less" than 3.2 m). In the kitchen photos the gap above the wall units looks smaller than 800, so the wall unit heights are worth measuring too (floor to top of the wall units).
