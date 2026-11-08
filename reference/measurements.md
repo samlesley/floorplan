@@ -135,6 +135,30 @@ As given:
 
 How it was used: a candidate 6 lath, 1.5 m Victorian airer runs along the room between the door and the futon, behind and to the right when sat at the desk, its laths 2.3 m up when raised (Lower it in its details panel drops it to 1.15 m). The hand winch (Cast in Style A2366) is on the wall by the light switch, just round the corner from the door, at 950 to the bottom of its back board, with its rope running up and along the ceiling to the airer's pulleys. The light switch position is taken from the photo; its exact place, and the raised and lowered heights you want, are worth confirming.
 
+## 2026-11-08: lights, layout fixes and the hi-fi
+
+As given:
+
+> 1. dining room table is a tiffany style lamp in the centre of the table it's also two chairs on either side none in the centre
+> 2. kitchen has under cabinet strip lighting
+> 3. the recessed booksehlf in the living room has 3 spotlighs on the top shelf, on the left hand side shining inwards
+> 4. in the bathroom there is a strip light on the top of the mirror, and under cabinet lighting on the utility area cuppboard
+> 5. there are two hubsch wally lamps in green, in the spare room this is the one on the wall by the window, also the main light in this room is slightly clsoer to the window, it hangs over the end of the sofa there. the pulley should hang so that it doesn't overlap with the open door. the over one goes between the unit in the living room and the tall radiator
+> 6. in the bedroom there are two ikea donut style lamps either side of the headboard area. kind of similar to the left hand side one, but on both sides (simila bed side table on both sides as well)
+>
+> there's a rega p3 turntable and rega brio amp on the unit next to the fireplace
+
+How these were used:
+
+1. Tiffany lamp moved to the centre of the dining table. Read "two chairs on either side, none in the centre" as one chair at each end of the table, so the chair at the middle of the long side was taken out.
+2. Strip lights under all three kitchen wall units.
+3. Three small spotlights on the top shelf of the recessed shelving, at the left-hand end as you face it, shining in across the shelves.
+4. A light bar on top of the bathroom mirror cabinet and a strip under the utility wall cabinet.
+5. The green swing-arm lamp in bedroom 2 is now named as a Hübsch Wally; its pair is on the lounge wall between the bureau bookcase and the tall radiator. The paper globe pendant moved towards the window, over the end of the futon. The airer moved 430 towards the window so it clears the open door.
+6. Donut wall lamps and bedside tables now on both sides of the bed in bedroom 1.
+
+Hi-fi: Rega Planar 3 (447 W x 117 H x 360 D, lid closed, from a retailer listing; lid not modelled; colour assumed black) and Rega Brio (216 W x 78 H x 345 D, retailer listings agree) side by side on the record cabinet, which was widened from 600 to 700 (still an estimate) so they fit.
+
 ## Still to measure
 
 Defaults, plan-scaled figures or photo estimates are in use for all of these.
@@ -160,3 +184,4 @@ Defaults, plan-scaled figures or photo estimates are in use for all of these.
 - Radiator sizes and positions in every room (estimated from photos).
 - Furniture: width, depth and height of each piece, and where it sits (distance from two walls), most usefully the sofa, coffee table, TV unit, bed, wardrobes and desk.
 - Bedroom 2: light switch position (for the airer winch), and the airer's raised and lowered heights.
+- Lounge: the record cabinet's real width (700 assumed so the turntable and amplifier fit side by side) and the turntable's colour.
