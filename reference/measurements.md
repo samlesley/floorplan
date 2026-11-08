@@ -44,21 +44,44 @@ Clutter, people and movable furniture are left out. The model keeps paint, floor
 
 Door swings from the photos: bedroom 1 and bathroom doors open into those rooms; lounge, bedroom 2 and kitchen doors open into the lounge or bedroom 2. All drawn open so the rooms can be seen.
 
+## 2026-11-08: my measurements (first batch)
+
+As given:
+
+> ceiling heights about 3.2m
+> slightly less in bathroom and kitchen (spotlights)
+>
+> the lounge is about 5.5m in total length to the longest point, the back of the sofa is 2m from the window
+>
+> windows in the lounge panes are 70cm wide
+>
+> in the bathroom, the utility counter top starts 1.6m away from the door threshold
+> the counter is 88cm, the room partition is 26cm
+
+How these were used:
+
+- Ceilings set to 3200 everywhere except the kitchen and bathroom. "Slightly less" there is not a figure, so they use 3000 for now (see below). Bedroom 1 was 2650, a photo estimate, and is now 3200.
+- Lounge length: **not applied**. The plan says 5.10 to the tip of the bay; 5.5 is about 400 more, which is more than the 50 mm I can resolve without asking. See the question under "Still to measure".
+- Sofa 2 m from the window: furniture, kept for step 2.
+- Lounge windows: taken as 700 of glass, so each opening is 810 including the frame, centred on its side of the bay (positions not yet measured).
+- Bathroom, measured from the bathroom side of the door threshold: utility counter runs from 1600 to 2480 from the door wall (880 long, washing machine 600 plus cupboard 280), then the partition, now 260 thick (the plan drew about 110). The partition's centre is 20 mm from where the plan puts it. The bath now runs 1380 from the window wall to the partition.
+
 ## Still to measure
 
 Defaults, plan-scaled figures or photo estimates are in use for all of these.
 
-- Ceiling heights. Estimated from photos: lounge, hall, bedroom 2 and hall cupboard 3400; bedroom 1 2650, bathroom 2700 and kitchen 2500 (these look lowered, with downlights or a textured ceiling).
+- Lounge length: you measured about 5.5 m to the longest point; the plan says 5.10. Was that to the glass of the middle bay windows, or to the wall face beside them? If to the glass, the gap is probably the depth of the window reveals, and the outside walls are much thicker than the plan draws.
+- Kitchen and bathroom ceiling heights (3000 in use for "slightly less" than 3.2 m). In the kitchen photos the gap above the wall units looks smaller than 800, so the wall unit heights are worth measuring too (floor to top of the wall units).
 - Picture rail height (estimated 2450) and cornice depths.
 - Door heights (estimated 2100) and the front door width (plan shows a 1140 opening; in the photos the door sits in a recess behind a curtain).
 - Window sill heights and window heights. Estimated: lounge bay sill 600, height 1800; bedroom 2 sill 600, height 1850; bedroom 1 sill 800, height 1550; bathroom sill 950, height 1650.
-- Window widths and positions, especially the four lounge bay windows (scaled from the plan). In the photos the bathroom windows look narrower than the plan, with a wider pier between them.
+- Window widths and positions. The lounge bay windows are now 700 of glass each but centred by guesswork; the gap from each corner of the bay to the first frame would fix them. In the photos the bathroom windows look narrower than the plan, with a wider pier between them.
 - Outside wall thickness, measured in a window reveal (plan draws about 150; real stone walls are likely much thicker).
 - Internal wall thickness, measured in a door frame (plan draws about 100).
 - Lounge: fireplace surround (1150 wide, 1180 high estimated), hearth and the position of the built-in shelving (about 900 wide, 380 deep estimated).
 - Kitchen: unit runs and appliance positions (laid out from photos to fit the plan), wall unit heights, and what the two solid blocks in the lower corners are.
 - Bedroom 1: the short wall by the door (about 940 long) and the cupboard marked W (about 400 x 510 inside). What is W?
-- Bathroom: bath length (1440 to the part wall, from the plan), WC, vanity and utility positions; the part wall height; the cupboard marked C (about 370 x 620 inside).
+- Bathroom: bath length (1380 if it runs from the window wall to the partition; please check), WC and vanity positions; the partition's length out from the wall and its height; the cupboard marked C (about 370 x 620 inside).
 - Bedroom 2: the solid block in the lower right corner (1410 x 290 scaled).
 - Hall: the high shelf (depth and height) and radiator position; the hall cupboard inside size (about 1230 x 1340 scaled).
 - Radiator sizes and positions in every room (estimated from photos).

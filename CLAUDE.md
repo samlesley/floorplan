@@ -48,7 +48,7 @@ All sizes in millimetres. Coordinates follow a printed floorplan: x runs left to
 {
   "name": "My flat",
   "note": "Shown under the title in the viewer",
-  "defaults": { "ceilingHeight": 3400, "wallThickness": 100, "doorHeight": 2100,
+  "defaults": { "ceilingHeight": 3200, "wallThickness": 100, "doorHeight": 2100,
                 "finish": { "trim": "#f4f2ec", "skirting": 200 } },   // finish defaults for every room
   "rooms": [ ... ],
   "walls": [ ... ],
@@ -158,4 +158,4 @@ Without `model` a piece is drawn as a box of its stated size. With `model` the v
 
 ## Current state
 
-Roadmap step 1 is nearly done. `flat.json` holds the real layout traced from `reference/floorplans/floorplan.png` (seven rooms including the hall cupboard, all doors and windows, nibs and cupboard walls), dressed from the room photos in `reference/photos/`: wall colours, picture rails, cornices, floors, door leaves, window frames, and the fixed fittings (fireplace, built-in shelving, kitchen units, bathroom fittings, radiators). Room sizes are the plan's printed figures; positions are scaled from the plan; heights, fittings and colours are estimated from photos. No tape measurements yet. Next: my measurements, working through the "Still to measure" list in `reference/measurements.md`.
+Roadmap step 1 is nearly done. `flat.json` holds the real layout traced from `reference/floorplans/floorplan.png` (seven rooms including the hall cupboard, all doors and windows, nibs and cupboard walls), dressed from the room photos in `reference/photos/`: wall colours, picture rails, cornices, floors, door leaves, window frames, and the fixed fittings (fireplace, built-in shelving, kitchen units, bathroom fittings, radiators). Room sizes are the plan's printed figures; positions are scaled from the plan; colours and most fittings are estimated from photos. First measurements are in (ceiling heights, lounge window widths, the bathroom utility area); the lounge length disagrees with the plan and is waiting on an answer. Next: my measurements, working through the "Still to measure" list in `reference/measurements.md`.
