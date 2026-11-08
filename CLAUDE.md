@@ -10,6 +10,7 @@ The viewer has:
 - a 3D view (orbit, pan, zoom) and a plan view that shows each wall's number and internal length. Plan view cuts everything at 1200 mm, like an architect's plan, so doors, worktops and windows show and wall cupboards and cornices don't
 - realistic finishes: textured floors, wall colours, skirting, picture rails, panelling, cornices, window frames and sills, door frames and door leaves
 - a wall height slider for cutaway views (fittings and furniture are cut with the walls)
+- a Walk view: first person at eye height (1.6 m) with ceilings shown. Click to look with the mouse (Esc to stop), or drag; W A S D to move, arrow keys or Q and E to turn, Shift to go faster; on-screen arrows for touch. Walls and furniture block the way, doorways don't. Clicking a room in the list jumps there; clicking a piece under the crosshair shows its details
 - furniture you can click for size, price and link; pieces marked `candidate` can be hidden
 - a "Checks" panel listing data problems (an opening past the end of its wall, a missing wall, a piece with no size)
 - a "Preview a different flat.json" button for trying a version without saving it
@@ -122,17 +123,19 @@ For wall pieces that are not part of a room outline: nibs, part walls, the sides
   "w": 2100, "d": 900, "h": 850,  // width along x and depth along y before rotation
   "rot": 180,                     // degrees clockwise on the plan, optional
   "colour": "#6b7a8f",
-  "status": "owned",              // owned | candidate | fixture
+  "status": "owned",              // owned | candidate | fixture | decor
   "price": "£599", "source": "https://...", "notes": "...",   // optional, shown in the details panel
   "model": "models/sofa.glb"      // optional, see below
 }
 ```
 
+`decor` is for pictures, mirrors and the like, listed under "Pictures and decor".
+
 `fixture` is for permanent parts of the flat that are not walls, such as a fireplace, kitchen units, bath or radiators. They are always shown, listed under "Fixed fittings", and cut with the walls by the wall height slider. A fitted item made of several parts (worktop on units, fireplace surround and hearth) is several fixtures.
 
 Extra fields for any piece:
 - `"z": 1500`: height of its underside above the floor (wall cupboards, shelves, mirrors).
-- `"kind"` draws a simple shape instead of a box: `"radiator"` (with `"style": "panel" | "column"`), `"sofa"` (also armchairs and benches), `"bed"`, `"table"` (`"shape": "round"`, or `"style": "solid"` for a cabinet-style base), `"chair"`, `"rug"`, `"tv"`, `"shelves"` (open shelving, `"shelves": 6`). `"colour2"` is the second colour: bedding, table legs, shelf boards, a rug's centre.
+- `"kind"` draws a simple shape instead of a box: `"radiator"` (with `"style": "panel" | "column"`), `"sofa"` (also armchairs and benches), `"bed"`, `"table"` (`"shape": "round"`, or `"style": "solid"` for a cabinet-style base), `"chair"`, `"rug"`, `"tv"`, `"shelves"` (open shelving, `"shelves": 6`), `"pendant"` (a ceiling light with its shade's underside at `z`: `"style": "dome" | "bowl" | "drum" | "globe"`, `"rose": 700` for a ceiling rose), `"curtain"` (gathered fabric), `"picture"` (frame in `colour`, picture in `colour2`, `"mirror": true` for glass). `"colour2"` is the second colour: bedding, table legs, shelf boards, a rug's centre.
 - At `rot` 0 a piece's front faces down the plan (+y); `rot` 90 faces left (-x), 180 up, 270 right.
 - `"opacity": 0.3`, `"metalness": 0.6`, `"roughness": 0.2`: for glass, stainless steel, gloss.
 
@@ -159,4 +162,4 @@ Without `model` a piece is drawn as a box of its stated size. With `model` the v
 
 ## Current state
 
-Roadmap step 1 is nearly done. `flat.json` holds the real layout traced from `reference/floorplans/floorplan.png` (seven rooms including the hall cupboard, all doors and windows, nibs and cupboard walls), dressed from the room photos in `reference/photos/`: wall colours, picture rails, cornices, floors, door leaves, window frames, and the fixed fittings (fireplace, built-in shelving, kitchen units, bathroom fittings, radiators). Room sizes are the plan's printed figures; positions are scaled from the plan; colours and most fittings are estimated from photos. First measurements are in (ceiling heights, lounge window widths, the bathroom utility area); the lounge length disagrees with the plan and is waiting on an answer. Roadmap step 2 has started: the furniture seen in the photos is in as `owned` pieces, with sizes and positions estimated. Next: my measurements, working through the "Still to measure" list in `reference/measurements.md`.
+Roadmap step 1 is nearly done. `flat.json` holds the real layout traced from `reference/floorplans/floorplan.png` (seven rooms including the hall cupboard, all doors and windows, nibs and cupboard walls), dressed from the room photos in `reference/photos/`: wall colours, picture rails, cornices, floors, door leaves, window frames, and the fixed fittings (fireplace, built-in shelving, kitchen units, bathroom fittings, radiators). Room sizes are the plan's printed figures; positions are scaled from the plan; colours and most fittings are estimated from photos. First measurements are in (ceiling heights, lounge window widths, the bathroom utility area); the lounge length disagrees with the plan and is waiting on an answer. Roadmap step 2 has started: the furniture seen in the photos is in as `owned` pieces, with sizes and positions estimated, plus lights, blinds, curtains, mirrors and picture walls. The viewer has a first-person Walk view. Next: my measurements, working through the "Still to measure" list in `reference/measurements.md`.

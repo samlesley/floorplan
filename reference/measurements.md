@@ -100,6 +100,10 @@ How these were used:
 - Hall rug turned to run along the hall, towards the lounge and bedroom 2 doors.
 - Lounge armchair moved next to the sofa's end, angled towards the TV, with the round side table between them.
 
+## 2026-11-08: more detail from the photos
+
+Added after a second pass over the photos, all estimated: pendant lights (lounge dome shade with ceiling rose, stained glass shade in the hall, drum shade in bedroom 1, paper globe in bedroom 2); Roman blinds half down in the bay; dark red curtains in bedroom 1; café curtains on the bathroom windows; roller blind part down in bedroom 2; curtain over the front door recess; overmantel mirror; speakers either side of the TV; wooden cube shelf in the kitchen; green border tiles round the bath; bracket shelves and the monitor in bedroom 2; picture walls in the lounge, hall and both bedrooms, and the oval mirror in the hall. Picture positions and sizes are approximate.
+
 ## Still to measure
 
 Defaults, plan-scaled figures or photo estimates are in use for all of these.
