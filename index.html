@@ -13,7 +13,7 @@
   [hidden] { display: none !important; }
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink);
     font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-  #app { display: grid; grid-template-columns: 300px 1fr; height: 100vh; }
+  #app { display: grid; grid-template-columns: 300px 1fr; height: 100vh; height: 100dvh; }
   #panel { background: var(--panel); border-right: 1px solid var(--line); overflow-y: auto; padding: 18px 18px 28px; }
   #stage { position: relative; overflow: hidden; }
   #stage canvas { display: block; }
@@ -68,10 +68,25 @@
   #pad button { border: 1px solid var(--line); border-radius: 10px; background: rgba(255,255,255,.85); font-size: 16px; cursor: pointer; touch-action: none; user-select: none; }
   #pad button[data-k="fwd"] { grid-column: 2; }
   #pad button[data-k="left"] { grid-column: 1; grid-row: 2; }
+  .bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  #more { display: none; margin-left: auto; }
+  /* thumb stick for walking on touch screens */
+  #stick { position: absolute; left: 22px; bottom: 22px; width: 124px; height: 124px; border-radius: 50%; z-index: 4;
+    background: rgba(255,255,255,.28); border: 2px solid rgba(255,255,255,.75); box-shadow: 0 2px 12px rgba(0,0,0,.18); touch-action: none; user-select: none; -webkit-user-select: none; }
+  #knob { position: absolute; left: 50%; top: 50%; width: 54px; height: 54px; margin: -27px 0 0 -27px; border-radius: 50%;
+    background: rgba(255,255,255,.92); box-shadow: 0 1px 6px rgba(0,0,0,.25); pointer-events: none; }
+  #stage, #stage canvas { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
   @media (max-width: 760px) {
     #app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
-    #panel { max-height: 42vh; border-right: 0; border-bottom: 1px solid var(--line); }
-    #info { left: 12px; right: 12px; width: auto; }
+    #panel { max-height: 45vh; max-height: 45dvh; border-right: 0; border-bottom: 1px solid var(--line); padding: 10px 14px 16px; }
+    #app.compact #panel > :not(.keep) { display: none; }
+    #app.compact #panel { padding-bottom: 10px; }
+    #more { display: inline-block; }
+    h1 { font-size: 15px; }
+    .seg button { padding: 8px 14px; }
+    #info { left: 10px; right: 10px; top: auto; bottom: 10px; width: auto; max-height: 55%; overflow-y: auto; }
+    #hint { left: 10px; right: 10px; top: 10px; bottom: auto; text-align: center; }
+    li.item { padding: 9px 8px; }
   }
 </style>
 <script type="importmap">
@@ -87,10 +102,13 @@
     <h1 id="title">Flat 3D model</h1>
     <p class="note" id="note"></p>
 
-    <div class="seg" role="group" aria-label="View">
-      <button id="v3d" class="on">3D</button>
-      <button id="vplan">Plan</button>
-      <button id="vwalk">Walk</button>
+    <div class="bar keep">
+      <div class="seg" role="group" aria-label="View">
+        <button id="v3d" class="on">3D</button>
+        <button id="vplan">Plan</button>
+        <button id="vwalk">Walk</button>
+      </div>
+      <button id="more" class="btn" aria-expanded="false">Options</button>
     </div>
 
     <h2>Display</h2>
@@ -135,6 +153,7 @@
     <div id="info" hidden></div>
     <div id="hint">Drag to orbit · right-drag to pan · scroll to zoom · click a piece for details</div>
     <div id="cross" hidden></div>
+    <div id="stick" hidden><div id="knob"></div></div>
     <div id="pad" hidden>
       <button data-k="fwd" aria-label="Forward">▲</button>
       <button data-k="left" aria-label="Left">◀</button><button data-k="back" aria-label="Back">▼</button><button data-k="right" aria-label="Right">▶</button>
@@ -153,6 +172,7 @@ import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 const S = 0.001; // millimetres to metres
 const $ = id => document.getElementById(id);
@@ -160,7 +180,10 @@ const stage = $('stage');
 
 // ---------- renderer, scene, cameras ----------
 const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+// phones and tablets: draw at a lower resolution and leave the heavy lighting off unless chosen
+const coarse = matchMedia('(pointer: coarse)').matches, phone = coarse && Math.min(screen.width, screen.height) < 820;
+let touchUI = coarse; // switches on at the first touch, for laptops with touch screens
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, phone ? 1.5 : 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.NeutralToneMapping;
@@ -177,7 +200,7 @@ const ambient = new THREE.AmbientLight(0xfff4e6, 0);
 scene.add(hemi, ambient);
 const sun = new THREE.DirectionalLight(0xfff6ea, 1.35);
 sun.castShadow = true;
-sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.mapSize.setScalar(phone ? 1024 : 2048);
 sun.shadow.bias = -0.0005;
 scene.add(sun, sun.target);
 
@@ -216,7 +239,7 @@ composer.addPass(renderPass); composer.addPass(gtao); composer.addPass(new Outpu
 const hideForAO = gtao.overrideVisibility.bind(gtao);
 gtao.overrideVisibility = function () { hideForAO(); this.scene.traverse(o => { if (o.isMesh && o.material?.transparent) o.visible = false; }); };
 let hq = true;
-try { hq = localStorage.getItem('flat-hq') !== '0'; } catch (e) {}
+try { const v = localStorage.getItem('flat-hq'); hq = v === null ? !phone : v !== '0'; } catch (e) { hq = !phone; }
 
 const ctl3d = new OrbitControls(persp, labelRenderer.domElement);
 ctl3d.enableDamping = true;
@@ -599,8 +622,52 @@ function build() {
   Object.assign(sun.shadow.camera, { left: -R, right: R, top: R, bottom: -R, near: 0.1, far: R * 4 });
   sun.shadow.camera.updateProjectionMatrix();
 
+  // fewer draw calls: walls and trim become a few meshes, and each piece of furniture a few more
+  mergeStatic(building, o => ceilings.includes(o) || o.userData.outside || o.userData.room);
+  for (const g of furnGroup.children) if (g.userData.f && !g.userData.f.model) mergeStatic(g);
+
   renderLists(checks);
   applyVisibility();
+}
+
+// merge the meshes under root that share a material and shadow settings into one mesh each (glass and instanced meshes stay as they are)
+const EMPTY = new THREE.BufferGeometry();
+function mergeStatic(root, keep = () => false) {
+  root.updateMatrixWorld(true);
+  const inv = root.matrixWorld.clone().invert(), sets = new Map();
+  const visit = o => {
+    if (o !== root && keep(o)) return;
+    if ((o.isMesh || o.isLineSegments) && !o.isInstancedMesh && !Array.isArray(o.material) && !o.material.transparent && o.visible) {
+      const k = o.material.uuid + (o.isLineSegments ? 'L' : 'M') + o.castShadow + o.receiveShadow;
+      if (!sets.has(k)) sets.set(k, []);
+      sets.get(k).push(o);
+    }
+    for (const c of o.children) visit(c);
+  };
+  visit(root);
+  for (const list of sets.values()) {
+    if (list.length < 2) continue;
+    const lines = list[0].isLineSegments, geos = [];
+    for (const o of list) {
+      const g = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone();
+      for (const name of Object.keys(g.attributes)) if (!(lines ? ['position'] : ['position', 'normal', 'uv']).includes(name)) g.deleteAttribute(name);
+      if (!lines && !g.attributes.normal) g.computeVertexNormals();
+      if (!lines && !g.attributes.uv) g.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count * 2), 2));
+      g.clearGroups(); g.morphAttributes = {};
+      g.applyMatrix4(new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld));
+      geos.push(g);
+    }
+    const merged = mergeGeometries(geos);
+    geos.forEach(g => g.dispose());
+    if (!merged) continue;
+    const m = lines ? new THREE.LineSegments(merged, list[0].material) : new THREE.Mesh(merged, list[0].material);
+    m.castShadow = list[0].castShadow; m.receiveShadow = list[0].receiveShadow;
+    root.add(m);
+    for (const o of list) { // drop the originals; one with children keeps its place but draws nothing
+      o.geometry.dispose();
+      if (o.children.length) o.geometry = EMPTY; else o.parent.remove(o);
+    }
+  }
 }
 
 // put a mesh on wall e: um along the wall, y up (mm); off is the distance out from the room face (negative is into the room)
@@ -1747,10 +1814,7 @@ function setMode(m) {
   ctlPlan.enabled = m === 'plan';
   applyLighting();
   $('wallh').disabled = m === 'walk';
-  $('cross').hidden = $('pad').hidden = m !== 'walk';
-  $('hint').textContent = m === '3d' ? 'Drag to orbit · right-drag to pan · scroll to zoom · click a piece for details'
-    : m === 'plan' ? 'Drag furniture to move it · R to turn it · drag empty space to pan · scroll to zoom'
-    : 'Click to look with the mouse (Esc to stop) · W A S D or arrow keys to walk · Shift to go faster · click a piece for details';
+  showHint();
   if (m === 'walk' && !walk.started && bbox) { const h = flat.rooms.find(r => r.id === 'hall') || flat.rooms[0]; walkTo(h); walk.yaw = -Math.PI / 2; walk.started = true; }
   applyVisibility();
 }
@@ -1794,6 +1858,32 @@ function setEvening(on) {
 $('tday').onclick = () => setEvening(false);
 $('teve').onclick = () => setEvening(true);
 
+function showHint() {
+  const m = mode;
+  $('pad').hidden = m !== 'walk' || touchUI;
+  $('stick').hidden = m !== 'walk' || !touchUI;
+  $('cross').hidden = m !== 'walk' || touchUI;
+  $('hint').textContent = touchUI
+    ? (m === '3d' ? 'Drag to orbit · two fingers to pan and zoom · tap a piece for details'
+      : m === 'plan' ? 'Drag furniture to move it · drag empty space to pan · pinch to zoom'
+      : 'Drag to look round · use the circle to walk · tap a piece for details')
+    : (m === '3d' ? 'Drag to orbit · right-drag to pan · scroll to zoom · click a piece for details'
+      : m === 'plan' ? 'Drag furniture to move it · R to turn it · drag empty space to pan · scroll to zoom'
+      : 'Click to look with the mouse (Esc to stop) · W A S D or arrow keys to walk · Shift to go faster · click a piece for details');
+  $('hint').hidden = false;
+  clearTimeout(showHint.t);
+  if (touchUI) showHint.t = setTimeout(() => { $('hint').hidden = true; }, 6000); // out of the way once read
+}
+addEventListener('pointerdown', e => { if (e.pointerType === 'touch' && !touchUI) { touchUI = true; showHint(); } }, { capture: true });
+// the options panel folds away on small screens so the view gets the room
+const narrow = matchMedia('(max-width: 760px)');
+const setCompact = on => { $('app').classList.toggle('compact', on); $('more').textContent = on ? 'Options' : 'Hide options'; $('more').setAttribute('aria-expanded', String(!on)); };
+setCompact(narrow.matches);
+$('more').onclick = () => setCompact(!$('app').classList.contains('compact'));
+narrow.addEventListener('change', e => setCompact(e.matches));
+if (phone) $('showWallLbl').checked = false; // too crowded at phone size; the tick box turns them on
+showHint();
+
 // ---------- first-person walking ----------
 function blocked(x, y) {
   for (const c of colliders) {
@@ -1812,11 +1902,14 @@ function walkTo(r) { // stand in a free spot near the room's centre
 }
 function walkStep(dt) { // returns true if the view moved
   const was = [walk.x, walk.y, walk.yaw, walk.pitch];
-  const k = walk.keys, f = (k.has('fwd') ? 1 : 0) - (k.has('back') ? 1 : 0), s = (k.has('right') ? 1 : 0) - (k.has('left') ? 1 : 0);
+  const k = walk.keys;
+  let f = (k.has('fwd') ? 1 : 0) - (k.has('back') ? 1 : 0), s = (k.has('right') ? 1 : 0) - (k.has('left') ? 1 : 0);
   const turn = (k.has('turnL') ? 1 : 0) - (k.has('turnR') ? 1 : 0);
   walk.yaw += turn * 1.8 * dt;
-  if (f || s) {
-    const sp = (k.has('fast') ? 2.6 : 1.3) * 1000 * dt / Math.hypot(f, s);
+  let push = 1;
+  if (stick.on) { f = -stick.y; s = stick.x; push = Math.min(1, Math.hypot(f, s)); } // the thumb stick: how far it is pushed sets the pace
+  if (Math.hypot(f, s) > 0.08) {
+    const sp = (k.has('fast') ? 2.6 : 1.3) * push * 1000 * dt / Math.hypot(f, s);
     const sy = Math.sin(walk.yaw), cy = Math.cos(walk.yaw);
     const dx = (-sy * f + cy * s) * sp, dy = (-cy * f - sy * s) * sp;
     if (!blocked(walk.x + dx, walk.y)) walk.x += dx;
@@ -1837,10 +1930,32 @@ addEventListener('keyup', e => { const k = keyMap[e.code]; if (k) walk.keys.dele
 addEventListener('blur', () => walk.keys.clear());
 const look = (mx, my) => { walk.yaw -= mx * 0.0024; walk.pitch = Math.max(-1.45, Math.min(1.45, walk.pitch - my * 0.0024)); };
 document.addEventListener('mousemove', e => { if (mode === 'walk' && document.pointerLockElement === labelRenderer.domElement) look(e.movementX, e.movementY); });
-let dragLook = null;
-labelRenderer.domElement.addEventListener('pointerdown', e => { if (mode === 'walk' && !document.pointerLockElement) dragLook = [e.clientX, e.clientY]; });
-addEventListener('pointermove', e => { if (dragLook && mode === 'walk' && !document.pointerLockElement) { look(e.clientX - dragLook[0], e.clientY - dragLook[1]); dragLook = [e.clientX, e.clientY]; } });
-addEventListener('pointerup', () => { dragLook = null; });
+let dragLook = null; // the one pointer that is looking round
+labelRenderer.domElement.addEventListener('pointerdown', e => { if (mode === 'walk' && !document.pointerLockElement && !dragLook) dragLook = { id: e.pointerId, x: e.clientX, y: e.clientY, k: e.pointerType === 'touch' ? 1.6 : 1 }; });
+addEventListener('pointermove', e => {
+  if (!dragLook || e.pointerId !== dragLook.id || mode !== 'walk' || document.pointerLockElement) return;
+  look((e.clientX - dragLook.x) * dragLook.k, (e.clientY - dragLook.y) * dragLook.k); dragLook.x = e.clientX; dragLook.y = e.clientY;
+});
+for (const ev of ['pointerup', 'pointercancel']) addEventListener(ev, e => { if (dragLook && e.pointerId === dragLook.id) dragLook = null; });
+// thumb stick: push the knob to walk; it springs back when let go
+const stick = { on: false, id: null, x: 0, y: 0 };
+$('stick').addEventListener('pointerdown', e => {
+  e.preventDefault(); e.stopPropagation();
+  stick.on = true; stick.id = e.pointerId; $('stick').setPointerCapture(e.pointerId); moveStick(e);
+});
+function moveStick(e) {
+  const r = $('stick').getBoundingClientRect(), R = r.width / 2;
+  let dx = e.clientX - r.left - R, dy = e.clientY - r.top - R; const L = Math.hypot(dx, dy);
+  if (L > R) { dx *= R / L; dy *= R / L; }
+  stick.x = dx / R; stick.y = dy / R;
+  $('knob').style.transform = `translate(${dx}px, ${dy}px)`;
+  invalidate();
+}
+$('stick').addEventListener('pointermove', e => { if (stick.on && e.pointerId === stick.id) moveStick(e); });
+for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) $('stick').addEventListener(ev, e => {
+  if (e.pointerId !== stick.id) return;
+  stick.on = false; stick.id = null; stick.x = stick.y = 0; $('knob').style.transform = '';
+});
 for (const b of document.querySelectorAll('#pad button')) {
   const k = b.dataset.k;
   b.addEventListener('pointerdown', e => { e.preventDefault(); walk.keys.add(k); });
@@ -1850,7 +1965,8 @@ for (const b of document.querySelectorAll('#pad button')) {
 function frame() {
   if (!bbox) return;
   const cx = (bbox.minX + bbox.maxX) / 2 * S, cz = (bbox.minY + bbox.maxY) / 2 * S;
-  const w = (bbox.maxX - bbox.minX) * S, d = (bbox.maxY - bbox.minY) * S, R = Math.max(w, d);
+  const w = (bbox.maxX - bbox.minX) * S, d = (bbox.maxY - bbox.minY) * S, asp = stage.clientWidth / Math.max(1, stage.clientHeight);
+  const R = Math.max(w, d) * Math.max(1, 1.15 / asp); // stand further back on a tall, narrow screen
   ctl3d.target.set(cx, 0, cz);
   persp.position.set(cx + R * 0.2, R * 1.25, cz + R * 0.72);
   ctl3d.update();
@@ -1867,7 +1983,7 @@ function resize() {
   const w = stage.clientWidth, h = stage.clientHeight;
   if (!w || !h) return;
   renderer.setSize(w, h);
-  composer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
+  composer.setPixelRatio(Math.min(window.devicePixelRatio, phone ? 1 : 1.25));
   composer.setSize(w, h);
   labelRenderer.setSize(w, h);
   persp.aspect = walkCam.aspect = w / h;
