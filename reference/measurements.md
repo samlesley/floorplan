@@ -29,7 +29,7 @@ Also on the plan: a chimney breast with fireplace in the lounge's top wall, a fo
 
 ## 2026-11-08: what the photos show
 
-Source: `reference/photos/<room>/` (18 photos, uploaded 2026-11-08). They confirm the plan's layout: door order round the hall, the kitchen door into the lounge, no kitchen window, two bathroom windows, the bath against the part wall, the chimney breast in bedroom 2. Nothing contradicts the plan.
+Source: 18 room photos shared on 2026-11-08 (since taken off GitHub; kept privately). They confirm the plan's layout: door order round the hall, the kitchen door into the lounge, no kitchen window, two bathroom windows, the bath against the part wall, the chimney breast in bedroom 2. Nothing contradicts the plan.
 
 Clutter, people and movable furniture are left out. The model keeps paint, floors, woodwork and fixed fittings only. Colours are matched by eye from the photos, so they are approximate (lighting in the photos varies).
 
@@ -169,7 +169,8 @@ Defaults, plan-scaled figures or photo estimates are in use for all of these.
 
 - Lounge length: you measured about 5.5 m to the longest point; the plan says 5.10. Was that to the glass of the middle bay windows, or to the wall face beside them? If to the glass, the gap is probably the depth of the window reveals, and the outside walls are much thicker than the plan draws.
 - Kitchen and bathroom ceiling heights (3000 in use for "slightly less" than 3.2 m). In the kitchen photos the gap above the wall units looks smaller than 800, so the wall unit heights are worth measuring too (floor to top of the wall units).
-- Picture rail height (estimated 2450) and cornice depths.
+- Picture rail height (estimated 2450; the hall's looks lower in the photos, level with the tops of the door architraves, so 2250 is in use there) and cornice depths.
+- Bathroom door: the height of the fanlight over it (450 estimated, so the opening is 2550 in all).
 - Door heights (estimated 2100) and the front door width (plan shows a 1140 opening; in the photos the door sits in a recess behind a curtain).
 - Window sill heights and window heights. Estimated: lounge bay sill 600, height 1800; bedroom 2 sill 600, height 1850; bedroom 1 sill 800, height 1550; bathroom sill 950, height 1650.
 - Window widths and positions. The lounge bay windows are now 700 of glass each but centred by guesswork; the gap from each corner of the bay to the first frame would fix them. In the photos the bathroom windows look narrower than the plan, with a wider pier between them.
