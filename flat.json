@@ -1,6 +1,6 @@
 {
   "name": "My flat",
-  "note": "Layout from the floorplan; finishes and fittings from the room photos (reference/photos). Room sizes are the plan's figures; heights, fittings and furniture are estimated from photos until measured.",
+  "note": "Layout from the floorplan; finishes and fittings from the room photos. Room sizes are the plan's figures; heights, fittings and furniture are estimated from photos until measured.",
   "defaults": {"ceilingHeight": 3200, "wallThickness": 100, "doorHeight": 2100, "finish": {"trim": "#f4f2ec", "skirting": 200}},
   "rooms": [
     {"id": "bedroom1", "name": "Bedroom 1", "floor": "carpet", "floorColour": "#a39b8e", "finish": {"wall": "#ede6d8", "skirting": 180}, "corners": [[0, 0], [4120, 0], [4120, 3240], [0, 3240]], "wallThickness": [150, 100, 100, 150]},

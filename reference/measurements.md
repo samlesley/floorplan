@@ -29,7 +29,7 @@ Also on the plan: a chimney breast with fireplace in the lounge's top wall, a fo
 
 ## 2026-11-08: what the photos show
 
-Source: `reference/photos/<room>/` (18 photos, uploaded 2026-11-08). They confirm the plan's layout: door order round the hall, the kitchen door into the lounge, no kitchen window, two bathroom windows, the bath against the part wall, the chimney breast in bedroom 2. Nothing contradicts the plan.
+Source: 18 room photos shared on 2026-11-08 (since taken off GitHub; kept privately). They confirm the plan's layout: door order round the hall, the kitchen door into the lounge, no kitchen window, two bathroom windows, the bath against the part wall, the chimney breast in bedroom 2. Nothing contradicts the plan.
 
 Clutter, people and movable furniture are left out. The model keeps paint, floors, woodwork and fixed fittings only. Colours are matched by eye from the photos, so they are approximate (lighting in the photos varies).
 

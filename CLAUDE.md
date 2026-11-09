@@ -37,7 +37,7 @@ index.html            viewer
 flat.json             the model data
 reference/
   floorplans/         scans or photos of plans (floorplan.png is the agent's plan)
-  photos/<room-id>/   room and furniture photos
+  photos/<room-id>/   room and furniture photos: kept off GitHub (ignored by git), see below
   measurements.md     my raw measurements, as I gave them
 models/               .glb furniture models (optional, see below)
 products/             candidate product data (later)
@@ -172,6 +172,7 @@ Without `model` a piece is drawn as a box of its stated size. With `model` the v
 - **Keep the raw data.** When I give measurements, save them to `reference/measurements.md` exactly as given, with the date, before converting them. `flat.json` is derived; the notes are the source.
 - **Measurements beat the floorplan.** Use plans for layout and how rooms relate, but my measured figures for sizes. Where they disagree by more than about 50 mm, tell me instead of picking one or averaging.
 - **Don't invent figures.** If something needed is missing (a sill height, a wall thickness), use a sensible default, add it to a "Still to measure" list at the bottom of `reference/measurements.md`, and say so.
+- **Photos stay private.** The repo is public and the model is on a public URL, so never commit room photos or renders made from them. `reference/photos/` is in `.gitignore`; when I share photos in a session, use them there and don't add them to the repo.
 - **Check against photos.** Use room photos to confirm what is on each wall, the order of doors and windows, and finishes and colours. Flag anything that contradicts the measurements.
 - **Check every change.** After editing `flat.json`: validate the JSON, confirm the viewer's Checks panel is empty, confirm each room's internal wall lengths in plan view match the measurements, and, if a headless browser is available, take a screenshot of both views and look at it.
 - **Permanent fixtures only, keep it clean.** In the model and in any renders or screenshots, leave out clutter, people and anything movable that appears in photos or plans. Keep only what looks permanent: walls, doors, windows, fireplaces, built-in cupboards, fitted kitchen and bathroom fittings, radiators. Furniture comes in only when I ask for it (roadmap step 2 onwards).
