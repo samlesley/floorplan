@@ -87,9 +87,12 @@ All sizes in millimetres. Coordinates follow a printed floorplan: x runs left to
     "trim": "#f4f2ec"             // woodwork: skirting, rails, architraves, sills
   },
   "corners": [[0,0],[4800,0],[4800,4200],[0,4200]],
-  "wallThickness": [450,100,100,450]   // optional, one per wall, else the default
+  "wallThickness": [450,100,100,450],  // optional, one per wall, else the default
+  "swatches": [{"name": "China Clay", "colour": "#efe9e3"}, {"name": "Stock", "colour": "#ece6d8"}]   // optional, for trying paints
 }
 ```
+
+- `swatches` splits every wall of the room into equal parts, one per paint, in order along each wall (clockwise), in place of `finish.wall`. A card naming each paint goes high on the wall, clear of doors and windows. Freestanding walls in the room keep `finish.wall`. Take `swatches` out once a paint is chosen.
 
 - `corners` are the room's **internal** corners in flat-wide coordinates. Rooms do not share corners: two rooms either side of a 100 mm partition have corners 100 mm apart.
 - Wall `i` runs from corner `i` to corner `i+1` (the last wall closes back to corner 0). Wall numbering therefore follows the order the corners are listed. List corners clockwise as seen on the plan, starting top left, so numbering is predictable.

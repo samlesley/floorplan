@@ -482,6 +482,7 @@ function build() {
   for (const r of flat.rooms) {
     if (!Array.isArray(r.corners) || r.corners.length < 3) { checks.push(`Room "${r.name || r.id}" needs at least 3 corners.`); continue; }
     allEdges.push(...roomEdges(r));
+    for (const sw of r.swatches || []) if (!sw.colour) checks.push(`Room "${r.name || r.id}": swatch "${sw.name || '?'}" needs a colour.`);
   }
 
   // openings: cut the host wall and any parallel wall on the other side of it
@@ -522,6 +523,7 @@ function build() {
     }
     if (u < s1) slab(e, u, s1, 0, H);
     for (const c of cuts) openingDetails(e, c, H);
+    if (Array.isArray(e.room.swatches)) swatchCards(e, cuts, H);
 
     // plan labels: wall number and internal length
     const div = document.createElement('div');
@@ -708,11 +710,17 @@ function finish(e, u0, u1, y0, y1) {
   const bands = [];
   if (sk) bands.push([0, sk, f.trim, 18]);
   if (dado) bands.push([sk, dado - 40, dadoCol, 10, f.dado.style === 'flat' ? null : 'boards'], [dado - 40, dado, dadoCol, 24]);
-  bands.push([Math.max(sk, dado), pr || top, f.wall, 2, 'plaster']);
+  // paint: trial swatches split a room's walls into equal parts, one per paint; otherwise one colour
+  const sw = e.i !== undefined && Array.isArray(e.room?.swatches) && e.room.swatches.length ? e.room.swatches : null;
+  if (sw) for (let j = 0; j < sw.length; j++) {
+    const sa = Math.max(a, e.L * j / sw.length), sb = Math.min(b, e.L * (j + 1) / sw.length);
+    if (sb - sa > 0.5) bands.push([Math.max(sk, dado), pr || top, sw[j].colour || f.wall, 2, 'plaster', sa, sb]);
+  }
+  else bands.push([Math.max(sk, dado), pr || top, f.wall, 2, 'plaster']);
   if (pr) bands.push([pr, pr + 40, f.trim, 22], [pr + 40, top, f.upper || f.wall, 2, 'plaster']);
-  for (const [lo, hi, col, dep, surface] of bands) {
+  for (const [lo, hi, col, dep, surface, ua = a, ub = b] of bands) {
     const yl = Math.max(lo, y0), yh = Math.min(hi, y1);
-    if (yh - yl > 0.5) strip(e, a, b, yl, yh, dep, mat(col, surface ? { roughness: 0.9, surface } : { roughness: 0.55 }));
+    if (yh - yl > 0.5) strip(e, ua, ub, yl, yh, dep, mat(col, surface ? { roughness: 0.9, surface } : { roughness: 0.55 }));
   }
   if (co) cornice(e, a, b, top, H, y0, y1, f);
 }
@@ -725,6 +733,46 @@ function cornice(e, a, b, top, H, y0, y1, f) {
     if (yh - yl > 0.5) strip(e, a, b, yl, yh, proj * dep, m);
   }
   if (H <= y1 + 0.5) strip(e, a, b, H - 10, H, proj * 1.45, plain);
+}
+// a card naming each trial paint, high on the wall where fittings won't hide it, clear of doors and windows
+const CARD_W = 300, CARD_H = 110;
+function swatchCards(e, cuts, H) {
+  const sw = e.room.swatches, k = sw.length;
+  sw.forEach((s, j) => {
+    if (!s.name) return;
+    const a = e.L * j / k + CARD_W / 2 + 20, b = e.L * (j + 1) / k - CARD_W / 2 - 20, mid = (a + b) / 2;
+    if (b < a) return;
+    const us = []; for (let u = a; u <= b + 0.1; u += 25) us.push(u);
+    us.sort((p, q) => Math.abs(p - mid) - Math.abs(q - mid));
+    for (const y of [2300, 2750]) {
+      if (y + CARD_H / 2 > H - 20) continue;
+      const u = us.find(u => !cuts.some(c => c.lo < u + CARD_W / 2 + 30 && c.hi > u - CARD_W / 2 - 30 && c.sill < y + CARD_H / 2 + 30 && c.head > y - CARD_H / 2 - 30));
+      if (u === undefined) continue;
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(CARD_W * S, CARD_H * S), cardMat(s.name, s.colour));
+      placeOnWall(m, e, u, y, -4);
+      const fx = Math.sin(m.rotation.y), fz = Math.cos(m.rotation.y); // the card's face, on the plan
+      if (fx * -e.n[0] + fz * -e.n[1] < 0) m.rotation.y += Math.PI;
+      building.add(m);
+      return;
+    }
+  });
+}
+function cardMat(name, colour) {
+  const key = 'card|' + name + '|' + colour;
+  if (!matCache.has(key)) {
+    const t = canvasTex(key, 600, 220, (g, w, h) => {
+      g.fillStyle = '#fbfaf7'; g.fillRect(0, 0, w, h);
+      g.fillStyle = colour || '#ffffff'; g.fillRect(18, 18, 120, h - 36);
+      g.strokeStyle = '#c9c6bf'; g.lineWidth = 3; g.strokeRect(18, 18, 120, h - 36);
+      g.fillStyle = '#2b2b2b'; g.textBaseline = 'middle';
+      let size = 44; g.font = `600 ${size}px system-ui, sans-serif`;
+      while (g.measureText(name).width > w - 180 && size > 20) g.font = `600 ${--size}px system-ui, sans-serif`;
+      g.fillText(name, 160, h / 2);
+    });
+    t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
+    matCache.set(key, new THREE.MeshStandardMaterial({ map: t, roughness: 0.9 }));
+  }
+  return matCache.get(key);
 }
 // a repeating relief for cornices: grey drawing used as both colour and bump, tinted by the cornice colour
 const enrichTex = style => canvasTex('enrich-' + style, 128, 128, (g, n) => {
