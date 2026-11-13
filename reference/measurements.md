@@ -182,6 +182,10 @@ Later the same day:
 
 In `flat.json`: bedroom 1, the hall and the hall cupboard China Clay (#efe9e3; the cupboard assumed to match the hall); bedroom 2 (the spare room) Rosemary Leaf, Dulux Heritage (#98a9a4) below the picture rail; kitchen Stock, Little Greene LG 37 (#f8f4e3; one site gives #ece6d8); white woodwork Wishbone White, Dulux Heritage (#e8e7e3): the trim default (skirting, rails, architraves, sills, doors), the bedroom 1 and bathroom window frames, the lounge built-in shelving and the hall high shelf. Lounge walls, and the colour above the picture rail in the lounge and bedroom 2, are still estimates from photos.
 
+Then: "could you do like a virtual swatch dividing up the bathroom appropriately to shoe portland stone - light, china clay and stock"
+
+The bathroom now has trial swatches: each wall split into thirds, Portland Stone - Light (#d7d2c4), China Clay (#efe9e3) and Stock (#ece6d8) in that order going clockwise, each with a name card. The part wall and cupboard walls stay China Clay. All three hex values are from the same colour sites (PaintDB, Hextoral) so they compare fairly; other sites give lighter values (Portland Stone - Light #e4e2d5, Stock #f8f4e3). The kitchen's Stock changed to #ece6d8 to match.
+
 ## Still to measure
 
 Defaults, plan-scaled figures or photo estimates are in use for all of these.
