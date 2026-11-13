@@ -159,6 +159,16 @@ How these were used:
 
 Hi-fi: Rega Planar 3 (447 W x 117 H x 360 D, lid closed, from a retailer listing; lid not modelled; colour assumed black) and Rega Brio (216 W x 78 H x 345 D, retailer listings agree) side by side on the record cabinet, which was widened from 600 to 700 (still an estimate) so they fit.
 
+## Paint colours (2026-11-13)
+
+> in the bathroom, the wood panelling is painted in Dark Brunswick Green from little greene. The walls are Portland Stone - Light.
+
+> elsewhere in the house we have used china clay and stock from little greene (bedroom/hallway and kitchen respectively)
+
+Then: "can you make the bathroom walls China Clay and also make sure the panelling is matched to dark brunswick green"
+
+In `flat.json` the bathroom walls are now China Clay (#efe9e3) and the panelling Dark Brunswick Green (LG 88, #3f5443). The bathroom radiator was drawn in the panelling colour, so it changed too. Hex values are the ones most colour sites give for these paints; screen colour is only approximate.
+
 ## Still to measure
 
 Defaults, plan-scaled figures or photo estimates are in use for all of these.
