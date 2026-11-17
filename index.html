@@ -117,6 +117,7 @@
     <label class="row"><input type="checkbox" id="showCand" checked> Show candidate pieces</label>
     <label class="row"><input type="checkbox" id="showFurnLbl"> Furniture names</label>
     <label class="row"><input type="checkbox" id="showWallLbl" checked> Wall numbers and lengths (plan)</label>
+    <label class="row"><input type="checkbox" id="showJoists" checked> Ceiling joists (where known or estimated)</label>
     <label class="row"><input type="checkbox" id="hq" checked> High quality lighting (turn off if it runs slowly)</label>
     <div class="seg" role="group" aria-label="Time of day" style="margin:6px 0 4px">
       <button id="tday" class="on">Day</button>
@@ -569,6 +570,22 @@ function build() {
     cm.position.y = ceiling(r) * S;
     cm.visible = mode === 'walk';
     building.add(cm); ceilings.push(cm);
+    if (r.joists) { // ceiling joists, drawn as lines on the ceiling where they run (measured or estimated)
+      const j = r.joists, along = j.runs === 'x' ? 0 : 1, across = 1 - along, sp = j.spacing || 400, jw = j.width || 50;
+      const lo = Math.min(...r.corners.map(c => c[across])), hi = Math.max(...r.corners.map(c => c[across]));
+      const jm = new THREE.MeshBasicMaterial({ color: j.colour || '#a0784a', transparent: true, opacity: 0.6, side: THREE.DoubleSide, depthWrite: false });
+      for (let c = lo + (j.first ?? sp); c < hi - 1; c += sp) {
+        const ts = []; // where this joist line crosses the room outline, in pairs
+        r.corners.forEach((p, i) => { const q = r.corners[(i + 1) % r.corners.length]; if ((p[across] - c) * (q[across] - c) < 0) ts.push(p[along] + (q[along] - p[along]) * (c - p[across]) / (q[across] - p[across])); });
+        ts.sort((a, b) => a - b);
+        for (let k = 0; k + 1 < ts.length; k += 2) {
+          const len = ts[k + 1] - ts[k], mid = (ts[k] + ts[k + 1]) / 2, [mx, my] = along ? [c, mid] : [mid, c];
+          const m = new THREE.Mesh(new THREE.PlaneGeometry((along ? jw : len) * S, (along ? len : jw) * S), jm);
+          m.rotation.x = -Math.PI / 2; m.position.set(mx * S, (ceiling(r) - 4) * S, my * S);
+          m.userData.joists = true; building.add(m);
+        }
+      }
+    }
     const [cx, cy] = polyCentroid(r.corners);
     const div = document.createElement('div');
     div.className = 'lbl-room';
@@ -611,11 +628,15 @@ function build() {
     if (!(f.w > 0 && f.d > 0 && f.h > 0)) { checks.push(`"${f.name}" needs w, d and h.`); continue; }
     // pieces follow the wall cut (slider, or 1200 mm in plan view), so wall cupboards and wardrobes don't stand above cut walls
     const r = flat.rooms.find(r => r.id === f.room);
-    const top = f.kind === 'airer' && mode === 'plan' ? Infinity : Math.min(planCut(), (r ? ceiling(r) : flat.defaults?.ceilingHeight ?? 2700) * wallFactor);
+    const top = (f.kind === 'airer' || f.kind === 'pulley') && mode === 'plan' ? Infinity : Math.min(planCut(), (r ? ceiling(r) : flat.defaults?.ceilingHeight ?? 2700) * wallFactor);
     if (zOf(f) >= top) continue;
     if (f.h > 300 && (f.z || 0) < 1500 && f.kind !== 'rug' && f.kind !== 'curtain' && f.kind !== 'picture' && !(f.opacity < 1)) colliders.push({ cx: f.x, cy: f.y, hw: f.w / 2, hd: f.d / 2, a: THREE.MathUtils.degToRad(f.rot || 0) });
     addFurniture(f, Math.min(f.h, top - zOf(f)));
   }
+
+  // airer ropes need a pulley piece wherever they turn
+  for (const f of flat.furniture || []) for (const p of f.kind === 'airer' && f.pulleys ? [...f.pulleys, ...(f.ropeTo ? [f.ropeTo] : [])] : f.kind === 'winch' && f.pulley ? [f.pulley] : [])
+    if (!flat.furniture.some((q, i) => q.kind === 'pulley' && !removed.has(i) && Math.hypot(q.x - p[0], q.y - p[1]) < 30)) checks.push(`"${f.name}": its rope runs to ${p[0]}, ${p[1]} but there is no pulley there.`);
 
   // sun and shadow box
   const cx = (bbox.minX + bbox.maxX) / 2 * S, cz = (bbox.minY + bbox.maxY) / 2 * S, R = Math.max(gw, gd);
@@ -625,7 +646,7 @@ function build() {
   sun.shadow.camera.updateProjectionMatrix();
 
   // fewer draw calls: walls and trim become a few meshes, and each piece of furniture a few more
-  mergeStatic(building, o => ceilings.includes(o) || o.userData.outside || o.userData.room);
+  mergeStatic(building, o => ceilings.includes(o) || o.userData.outside || o.userData.room || o.userData.joists);
   for (const g of furnGroup.children) if (g.userData.f && !g.userData.f.model) mergeStatic(g);
 
   renderLists(checks);
@@ -930,9 +951,9 @@ function addFurniture(f, hShown = f.h) {
     const fs = hShown < f.h ? { ...f, h: hShown } : f; // cut down to the wall height, like plain boxes
     // for ropes: the ceiling above the piece, and where the airer's rope runs to, in the piece's own frame
     const room = flat.rooms.find(r => r.id === f.room), top = (room ? ceiling(room) : 2700) * Math.min(1, wallFactor) - zOf(f);
-    let ropeTo = null;
-    if (f.ropeTo) { const a = THREE.MathUtils.degToRad(f.rot || 0), dx = f.ropeTo[0] - f.x, dy = f.ropeTo[1] - f.y; ropeTo = [dx * Math.cos(a) + dy * Math.sin(a), -dx * Math.sin(a) + dy * Math.cos(a)]; }
-    const shape = shapes[f.kind](fs, (c, o = {}) => mat(c, cand ? { ...o, transparent: true, opacity: 0.8 } : o), { lit, top, ropeTo });
+    const a = THREE.MathUtils.degToRad(f.rot || 0), local = ([px, py]) => { const dx = px - f.x, dy = py - f.y; return [dx * Math.cos(a) + dy * Math.sin(a), -dx * Math.sin(a) + dy * Math.cos(a)]; };
+    const ropeTo = f.ropeTo ? local(f.ropeTo) : null;
+    const shape = shapes[f.kind](fs, (c, o = {}) => mat(c, cand ? { ...o, transparent: true, opacity: 0.8 } : o), { lit, top, ropeTo, local });
     g.add(shape);
     if (lit && shape.userData.lightAt) {
       const [lx, ly, lz] = shape.userData.lightAt, col = f.lightColour || (f.kind === 'strip' || f.kind === 'spot' || f.kind === 'downlight' ? '#fff0dc' : '#ffdcb0');
@@ -1011,6 +1032,13 @@ const cyl = (g, material, rTop, rBot, h, y, x = 0, z = 0, open = false, seg = 28
   const m = new THREE.Mesh(new THREE.CylinderGeometry(rTop * S, rBot * S, h * S, seg, 1, open), material);
   m.position.set(x * S, y * S, z * S); m.castShadow = !open; m.receiveShadow = true; g.add(m); return m;
 };
+// a straight length of rope (or rod) from a to b, in mm in the piece's frame
+const rodBetween = (g, material, a, b, r = 5) => {
+  const A = new THREE.Vector3(...a).multiplyScalar(S), B = new THREE.Vector3(...b).multiplyScalar(S), L = A.distanceTo(B);
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(r * S, r * S, L, 6), material);
+  m.position.copy(A).add(B).multiplyScalar(0.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), B.clone().sub(A).normalize()); g.add(m); return m;
+};
+const PULLEY = { R: 35, axle: 95, run: 60 }; // ceiling pulley: wheel radius, wheel centre and rope run below the ceiling
 const shapes = {
   sofa(f, M) { // also armchairs and benches
     if (f.style === 'frame') return framedSeat(f, M);
@@ -1252,11 +1280,33 @@ const shapes = {
     for (let i = 0; i < n; i++) { const z = -d + 45 + (2 * d - 90) * i / (n - 1); part(g, wood, -w, w, 18, 50, z - 16, z + 16, 6); }
     // ropes from the top of each end up to a pulley on the ceiling, then along the ceiling to the pulley over the winch
     const up = (ctx.top ?? 900);
-    const rod = (a, b, r = 5) => { const A = new THREE.Vector3(...a).multiplyScalar(S), B = new THREE.Vector3(...b).multiplyScalar(S), L = A.distanceTo(B);
-      const m = new THREE.Mesh(new THREE.CylinderGeometry(r * S, r * S, L, 6), rope); m.position.copy(A).add(B).multiplyScalar(0.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), B.clone().sub(A).normalize()); g.add(m); };
+    const rod = (a, b, r = 5) => rodBetween(g, rope, a, b, r);
+    if (f.pulleys && ctx.local) { // the ceiling pulleys are pieces of their own: [single, double]; draw the ropes through them
+      const { R } = PULLEY, run = up - PULLEY.run, axle = up - PULLEY.axle;
+      const [Sx, Sz] = ctx.local(f.pulleys[0]), [Ax, Az] = ctx.local(f.pulleys[1]), T = ctx.ropeTo;
+      const dir = (ax, az, bx, bz) => { const L = Math.hypot(bx - ax, bz - az) || 1; return [(bx - ax) / L, (bz - az) / L]; };
+      const sEnd = Math.abs(Sx - gap / 2) < Math.abs(Sx + gap / 2) ? 1 : -1; // the end under the single pulley
+      const u1 = dir(Sx, Sz, Ax, Az), u2 = T ? dir(Ax, Az, T[0], T[1]) : u1;
+      rod([sEnd * gap / 2, h, 0], [Sx - u1[0] * R, axle, Sz - u1[1] * R]);   // rope 1: far end up over the single pulley
+      rod([Sx, run, Sz], [Ax, run, Az], 4);                                // and along the ceiling to the double
+      rod([-sEnd * gap / 2, h, 0], [Ax - u2[0] * R, axle, Az - u2[1] * R]); // rope 2: near end up over the double
+      if (T) { const nx = -u2[1] * 18, nz = u2[0] * 18; for (const s of [-1, 1]) rod([Ax + s * nx, run, Az + s * nz], [T[0] + s * nx, run, T[1] + s * nz], 4); } // both on to the pulley over the winch
+      return g;
+    }
     const wheel = (x, z) => { const p = new THREE.Mesh(new THREE.CylinderGeometry(40 * S, 40 * S, 22 * S, 16), iron); p.rotation.z = Math.PI / 2; p.position.set(x * S, (up - 55) * S, z * S); g.add(p); };
     for (const sx of [-1, 1]) { rod([sx * gap / 2, h, 0], [sx * gap / 2, up - 60, 0]); wheel(sx * gap / 2, 0); }
     if (ctx.ropeTo) { const [tx, tz] = ctx.ropeTo; rod([-gap / 2, up - 60, 0], [tx, up - 60, tz], 4); rod([gap / 2, up - 60, 0], [tx, up - 60, tz], 4); }
+    return g;
+  },
+  pulley(f, M) { // ceiling pulley for an airer rope: round plate, screw rod, cast iron housing, one or two wheels; the rope runs along its x
+    const g = new THREE.Group(), h = f.h, two = (f.wheels || 1) > 1, { R } = PULLEY, axle = h - PULLEY.axle;
+    const iron = M(f.colour || '#1d1d1f', { roughness: 0.45, metalness: 0.5 }), half = two ? 34 : 17;
+    cyl(g, iron, 32, 32, 8, h - 4, 0, 0, false, 20);       // plate on the ceiling
+    cyl(g, iron, 6, 6, 50, h - 33, 0, 0, false, 8);        // screw rod into the joist
+    part(g, iron, -16, 16, h - 64, h - 56, -half, half);   // crown of the housing
+    for (const s of [-1, 1]) part(g, iron, -R * 0.55, R * 0.55, axle - 14, h - 56, s * half - 2, s * half + 2); // cheeks
+    const pin = cyl(g, iron, 5, 5, half * 2, axle, 0, 0, false, 8); pin.rotation.x = Math.PI / 2;
+    for (const z of two ? [-16, 16] : [0]) { const w = cyl(g, iron, R, R, 12, axle, 0, z, false, 24); w.rotation.x = Math.PI / 2; }
     return g;
   },
   winch(f, M, ctx = {}) { // wall winch: round wooden back board, cast iron drum and crank; its rope goes up to a ceiling pulley
@@ -1271,6 +1321,11 @@ const shapes = {
     const knob = cyl(g, oak, 14, 16, 70, cy + R * 0.7, 0, back + 110 + 35, false, 16); knob.rotation.x = Math.PI / 2;
     // rope from the top of the drum up to the ceiling pulley above
     const top = ctx.top ?? 1500, A = [0, cy + 75, back + 62], B = [0, top - 60, back + 62];
+    if (f.pulley && ctx.local) { // both airer ropes come down from a ceiling pulley (a piece of its own) onto the drum
+      const [px, pz] = ctx.local(f.pulley), rope = M('#ece6d6', { roughness: 1 });
+      for (const s of [-15, 15]) rodBetween(g, rope, [s, A[1], A[2]], [px + s, top - PULLEY.axle, pz]);
+      return g;
+    }
     const rope = new THREE.Mesh(new THREE.CylinderGeometry(5 * S, 5 * S, (B[1] - A[1]) * S, 6), M('#ece6d6', { roughness: 1 }));
     rope.position.set(0, (A[1] + B[1]) / 2 * S, A[2] * S); g.add(rope);
     const p = new THREE.Mesh(new THREE.CylinderGeometry(40 * S, 40 * S, 22 * S, 16), iron); p.rotation.z = Math.PI / 2; p.position.set(0, (top - 55) * S, A[2] * S); g.add(p);
@@ -1690,6 +1745,7 @@ function applyVisibility() {
   wallLabels.forEach(l => l.visible = mode === 'plan' && $('showWallLbl').checked);
   roomLabels.forEach(l => l.visible = mode === 'plan');
   ceilings.forEach(c => c.visible = mode === 'walk');
+  building.children.forEach(o => { if (o.userData.joists) o.visible = $('showJoists').checked && (mode === 'plan' || wallFactor >= 1); });
   building.children.forEach(o => { if (o.userData.outside) o.visible = mode === 'walk'; });
   if (mode === 'walk') furnLabels.forEach(l => l.visible = false);
   if (selected && !selected.visible) select(null);
@@ -2084,6 +2140,7 @@ $('wallh').oninput = e => { wallFactor = e.target.value / 100; $('wallhv').textC
 $('showCand').onchange = applyVisibility;
 $('showFurnLbl').onchange = applyVisibility;
 $('showWallLbl').onchange = applyVisibility;
+$('showJoists').onchange = applyVisibility;
 $('hq').checked = hq;
 $('hq').onchange = e => { hq = e.target.checked; try { localStorage.setItem('flat-hq', hq ? '1' : '0'); } catch (err) {} };
 $('rooms').onclick = e => { const li = e.target.closest('li[data-room]'); if (!li) return; const r = flat.rooms[+li.dataset.room]; if (mode === 'walk') walkTo(r); else focusRoom(r); };
