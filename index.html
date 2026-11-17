@@ -574,12 +574,16 @@ function build() {
       const j = r.joists, along = j.runs === 'x' ? 0 : 1, across = 1 - along, sp = j.spacing || 400, jw = j.width || 50;
       const lo = Math.min(...r.corners.map(c => c[across])), hi = Math.max(...r.corners.map(c => c[across]));
       const jm = new THREE.MeshBasicMaterial({ color: j.colour || '#a0784a', transparent: true, opacity: 0.6, side: THREE.DoubleSide, depthWrite: false });
+      const B = j.bounds; // optional [x0, y0, x1, y1]: where the joists run, e.g. leaving out a window recess
       for (let c = lo + (j.first ?? sp); c < hi - 1; c += sp) {
+        if (B && (c < B[across] || c > B[across + 2])) continue;
         const ts = []; // where this joist line crosses the room outline, in pairs
         r.corners.forEach((p, i) => { const q = r.corners[(i + 1) % r.corners.length]; if ((p[across] - c) * (q[across] - c) < 0) ts.push(p[along] + (q[along] - p[along]) * (c - p[across]) / (q[across] - p[across])); });
         ts.sort((a, b) => a - b);
         for (let k = 0; k + 1 < ts.length; k += 2) {
-          const len = ts[k + 1] - ts[k], mid = (ts[k] + ts[k + 1]) / 2, [mx, my] = along ? [c, mid] : [mid, c];
+          const t0 = B ? Math.max(ts[k], B[along]) : ts[k], t1 = B ? Math.min(ts[k + 1], B[along + 2]) : ts[k + 1];
+          if (t1 - t0 < 1) continue;
+          const len = t1 - t0, mid = (t0 + t1) / 2, [mx, my] = along ? [c, mid] : [mid, c];
           const m = new THREE.Mesh(new THREE.PlaneGeometry((along ? jw : len) * S, (along ? len : jw) * S), jm);
           m.rotation.x = -Math.PI / 2; m.position.set(mx * S, (ceiling(r) - 4) * S, my * S);
           m.userData.joists = true; building.add(m);
