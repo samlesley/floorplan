@@ -1,0 +1,29 @@
+{
+  "name": "SÄLJAN worktop, oak effect/laminate",
+  "retailer": "IKEA",
+  "url": "https://www.ikea.com/gb/en/cat/kitchen-worktops-24264/f/oak-kitchen-worktops-f-appearance--50679/",
+  "articles": { "186 cm": "604.391.73", "246 cm": "804.392.09" },
+  "price": "£65 for 246 x 63.5 x 3.8 cm (IKEA UK, seen in search results 2026-11-17). The UK price of the 186 cm length could not be confirmed (ikea.com is not reachable from this session); about £50 is assumed, from other countries' prices.",
+  "dimensions_mm": { "lengths": [1860, 2460], "depth": 635, "thickness": 38 },
+  "notes": "Laminate on a particleboard core, edging strip included for cut ends, 25 year guarantee (per non-UK IKEA listings). Already fitted in the bathroom utility area. Trialled in the kitchen in flat.json as candidate pieces that replace the grey stone-effect tops.",
+  "images": [],
+  "kitchenEstimate": {
+    "date": "2026-11-17",
+    "basis": "Kitchen L as modelled: west run 1510 and south run 1700, wall to wall, with a step in the wall at the corner. Reuses the existing sink, tap and gas hob. Tiled splashbacks stay. Figures are typical UK ranges, not quotes.",
+    "parts": [
+      { "item": "2 x SÄLJAN 186 cm, oak effect (one per run)", "cost": "£100 to £130" },
+      { "item": "Corner joint: aluminium jointing strip, or worktop connector bolts for a router joint", "cost": "£10 to £20" },
+      { "item": "Sealant for cut-outs and cut edges, silicone for the wall and splashback, brackets and screws", "cost": "£15 to £25" },
+      { "item": "Spare tiles or grout to make good the bottom row of the splashback", "cost": "£0 to £30" }
+    ],
+    "partsTotal": "about £125 to £205",
+    "labour": [
+      { "item": "Kitchen fitter or joiner, about one day: take off the old tops, cut and scribe the new ones, the corner joint and the step notch, sink and hob cut-outs, fix and seal, reconnect the sink waste and tap", "cost": "£250 to £450" },
+      { "item": "Gas Safe engineer: disconnect the hob before and reconnect and test it after (best booked for the same day)", "cost": "£80 to £200" },
+      { "item": "Disposal of the old tops (a tip run, or included by the fitter)", "cost": "£0 to £40" }
+    ],
+    "labourTotal": "about £330 to £690",
+    "total": "about £450 to £900, most likely £600 to £700",
+    "risks": "The bottom row of splashback tiles often cracks when the old top comes out. If the existing tops are glued down or the units are out of level, allow extra time."
+  }
+}

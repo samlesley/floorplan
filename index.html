@@ -638,6 +638,8 @@ function build() {
     addFurniture(f, Math.min(f.h, top - zOf(f)));
   }
 
+  for (const f of flat.furniture || []) for (const n of f.replaces || []) if (!flat.furniture.some(q => q.name === n)) checks.push(`"${f.name}" replaces "${n}", but there is no piece of that name.`);
+
   // airer ropes need a pulley piece wherever they turn
   for (const f of flat.furniture || []) for (const p of f.kind === 'airer' && f.pulleys ? [...f.pulleys, ...(f.ropeTo ? [f.ropeTo] : [])] : f.kind === 'winch' && f.pulley ? [f.pulley] : [])
     if (!flat.furniture.some((q, i) => q.kind === 'pulley' && !removed.has(i) && Math.hypot(q.x - p[0], q.y - p[1]) < 30)) checks.push(`"${f.name}": its rope runs to ${p[0]}, ${p[1]} but there is no pulley there.`);
@@ -936,7 +938,7 @@ function addFurniture(f, hShown = f.h) {
   g.position.set(f.x * S, zOf(f) * S, f.y * S);
   g.rotation.y = -THREE.MathUtils.degToRad(f.rot || 0);
   g.userData.f = f;
-  const cand = f.status === 'candidate';
+  const cand = f.status === 'candidate' && !f.replaces; // a candidate that replaces a fitting (a new worktop) is drawn like the real thing
   const fixed = f.status === 'fixture';
   const box = () => {
     const rr = f.round ? Math.min(f.round * S, f.w * S / 2.2, hShown * S / 2.2, f.d * S / 2.2) : 0;
@@ -1739,9 +1741,11 @@ function renderLists(checks) {
 function applyVisibility() {
   invalidate();
   const showCand = $('showCand').checked;
+  // candidates with "replaces" hide the fittings they would replace while candidates are shown
+  const swapped = new Set(showCand ? flat.furniture.filter((f, i) => f.status === 'candidate' && !removed.has(i)).flatMap(f => f.replaces || []) : []);
   for (const g of furnGroup.children) {
     if (g.userData.f) {
-      const vis = showCand || g.userData.f.status !== 'candidate';
+      const vis = (showCand || g.userData.f.status !== 'candidate') && !swapped.has(g.userData.f.name);
       g.visible = vis;
       g.userData.label.visible = vis && $('showFurnLbl').checked;
     }
@@ -1793,7 +1797,7 @@ function select(g) {
 }
 
 // ---------- moving furniture ----------
-const movable = f => f && (f.status === 'owned' || f.status === 'candidate' || !f.status);
+const movable = f => f && !f.replaces && (f.status === 'owned' || f.status === 'candidate' || !f.status);
 const removable = f => movable(f) || f?.status === 'decor';
 function removePiece(f) {
   const i = flat.furniture.indexOf(f);

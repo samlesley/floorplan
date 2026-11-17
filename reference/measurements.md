@@ -229,6 +229,23 @@ How it was used:
 - Joist positions, still estimated: a partition that runs the same way as the joists normally sits on a joist, so one is placed under the lounge wall (centre at y 3780) and one under the far wall (centre at y 6340). That is 2560 between centres. Old floors have joists at 12 to 16 inch centres (300 to 400), and seven equal gaps of 366 (about 14 inches) fit exactly. That puts joists in the room at y 4146, 4512, 4878, 5244, 5610 and 5976 (316, 682, 1048, 1414, 1780 and 2146 out from the lounge wall). Six gaps of 427 would also fit; if a found joist is about 50 off these, that is the likely reason. They stop at the front wall, not running into the window recess.
 - The airer now sits under the joist at 4512 (682 out from the lounge wall), with both its pulleys in that joist, straight above the cast ends. The extra double pulley is straight above the winch, on the joist at 4146 (316 out from the wall, clear of the 220 cornice), so the winch rope goes straight up, leaning out about 170 over the drop. The two double pulleys are turned about 22 degrees to face each other.
 
+## 2026-11-17: utility worktop is IKEA SÄLJAN
+
+As given:
+
+> the worktop in the bathroom utility area is Saljan from ikea - let's incorporate that
+>
+> can you also use this worktop in the kitchen to see what that looks like
+>
+> can you also estimate cost of parts and labour for doing that in the kitchen
+
+How it was used:
+
+- The finish wasn't given. The photos show an oak-coloured top, so it is taken as SÄLJAN oak effect/laminate, and the photo-matched colour is kept.
+- SÄLJAN is sold 635 deep and 38 thick (IKEA listings). The utility top is now 635 deep (it was estimated at 600) and 38 thick, its top still at 900.
+- Kitchen: the same worktop added as candidates that replace the grey stone-effect tops: west run 1510 and south run 1700, each from a 1.86 m length, full 635 depth, the south one notched round the step in the wall at the corner. Untick "Show candidate pieces" to see the current tops. The existing sink, tap and hob stay.
+- Parts and labour estimate: `products/ikea-saljan-worktop-oak.json`. The UK price of the 1.86 m length couldn't be confirmed (the 2.46 m is £65).
+
 ## Still to measure
 
 Defaults, plan-scaled figures or photo estimates are in use for all of these.
@@ -249,7 +266,8 @@ Defaults, plan-scaled figures or photo estimates are in use for all of these.
 - Outside wall thickness, measured in a window reveal (plan draws about 150; real stone walls are likely much thicker).
 - Internal wall thickness, measured in a door frame (plan draws about 100).
 - Lounge: fireplace surround (1150 wide, 1180 high estimated), hearth and the position of the built-in shelving (about 900 wide, 380 deep estimated).
-- Kitchen: unit runs and appliance positions (laid out from photos to fit the plan), wall unit heights, and what the two solid blocks in the lower corners are.
+- Utility worktop: its depth front to back (635 if it was fitted uncut) and which SÄLJAN finish it is.
+- Kitchen: the current worktop's depth and thickness, and whether it is one piece or two at the corner, for the SÄLJAN trial; unit runs and appliance positions (laid out from photos to fit the plan), wall unit heights, and what the two solid blocks in the lower corners are.
 - Bedroom 1: the short wall by the door (about 940 long) and the cupboard marked W (about 400 x 510 inside). What is W?
 - Bathroom: bath length (1380 if it runs from the window wall to the partition; please check), WC and vanity positions; the partition's length out from the wall and its height; the cupboard marked C (about 370 x 620 inside).
 - Bedroom 2: the solid block in the lower right corner (1410 x 290 scaled).
