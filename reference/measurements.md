@@ -186,6 +186,20 @@ Then: "could you do like a virtual swatch dividing up the bathroom appropriately
 
 The bathroom now has trial swatches: each wall split into thirds, Portland Stone - Light (#d7d2c4), China Clay (#efe9e3) and Stock (#ece6d8) in that order going clockwise, each with a name card. The part wall and cupboard walls stay China Clay. All three hex values are from the same colour sites (PaintDB, Hextoral) so they compare fairly; other sites give lighter values (Portland Stone - Light #e4e2d5, Stock #f8f4e3). The kitchen's Stock changed to #ece6d8 to match.
 
+## 2026-11-17: airer pulleys and winch
+
+As given:
+
+> i'm installing the pulley from cast in style with the winch
+> the winch will go by the lightswitch in the spare room on the left hand side as you enter the room
+> the rope needs to go straight up from there so i need one extra pulley
+> if the pulleys attach to the ceiling they need to go in a joist
+> do i need two extra pulleys for this setup? i'm struggling to visualise how they orientate
+> i'm worried i can't get one on the ceiling directly above the pulley or could that one go on the wall and if so do i need two on the wall
+> ie 4 pulleys in total 3 double and one single?
+
+How it was used: confirms the winch position already in the model (on the wall beside the light switch, left of the door as you come in). The rope plan is three pulleys: the kit's single and double over the airer ends, plus one extra Standard Double Pulley (I43) at the ceiling above the winch, so both ropes turn down to the drum together (`products/standard-double-pulley.json`). The extra pulley can sit up to a few hundred mm out from the wall to clear the cornice and land on a joist; a timber batten across two joists is the fallback.
+
 ## Still to measure
 
 Defaults, plan-scaled figures or photo estimates are in use for all of these.
@@ -214,4 +228,5 @@ Defaults, plan-scaled figures or photo estimates are in use for all of these.
 - Radiator sizes and positions in every room (estimated from photos).
 - Furniture: width, depth and height of each piece, and where it sits (distance from two walls), most usefully the sofa, coffee table, TV unit, bed, wardrobes and desk.
 - Bedroom 2: light switch position (for the airer winch), and the airer's raised and lowered heights.
+- Bedroom 2 ceiling joists: which way they run, and where the nearest ones are to the two airer pulley points and to the ceiling above the winch (tap test, or a strong magnet slid across the ceiling to find the lath nail lines).
 - Lounge: the record cabinet's real width (700 assumed so the turntable and amplifier fit side by side) and the turntable's colour.
