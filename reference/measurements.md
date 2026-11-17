@@ -213,6 +213,22 @@ How it was used:
 - The three pulleys are in as candidate pieces: the single at the window end (9400, 4400), the double at the door end (8200, 4400), and the extra double above the winch (7400, 4100, 270 out from the wall to clear the cornice). The two ceiling-run pulleys are turned about 21 degrees to face each other. The ropes are drawn through them and down to the winch drum.
 - Joists: **a guess, not measured.** Running across bedroom 2 (along y, from the lounge wall towards the desk wall) at 400 centres, the first 300 in from the hall wall. Reasons: the lounge next door has boards running along x, and boards run across joists; joists usually span a room's shorter way (bedroom 2 is about 2.46 m that way); tenement floors tend to stack, so the joists above are likely the same way as the ones below. Where the first one falls is placed to suit the pulleys; the real positions need finding. With joists running this way and 400 apart, the two airer pulleys 1200 apart can both land on joists by sliding the airer up to 200 along the room, and the pulley above the winch can sit anywhere along its joist.
 
+## 2026-11-17: joists run the other way
+
+As given:
+
+> the joists run the other way, along the room
+> the floorboards in the living room are not right also
+> update it all
+> and try and be as accurate as you can with the joist positions
+
+How it was used:
+
+- Bedroom 2 joists now run along the room (x), from the front wall to the hall wall. That is the usual tenement arrangement, front wall to the internal spine wall, so the same is assumed for the rest of the flat.
+- Lounge floorboards turned to run along y, across those joists. The hall boards already ran across them.
+- Joist positions, still estimated: a partition that runs the same way as the joists normally sits on a joist, so one is placed under the lounge wall (centre at y 3780) and one under the far wall (centre at y 6340). That is 2560 between centres. Old floors have joists at 12 to 16 inch centres (300 to 400), and seven equal gaps of 366 (about 14 inches) fit exactly. That puts joists in the room at y 4146, 4512, 4878, 5244, 5610 and 5976 (316, 682, 1048, 1414, 1780 and 2146 out from the lounge wall). Six gaps of 427 would also fit; if a found joist is about 50 off these, that is the likely reason. They stop at the front wall, not running into the window recess.
+- The airer now sits under the joist at 4512 (682 out from the lounge wall), with both its pulleys in that joist, straight above the cast ends. The extra double pulley is straight above the winch, on the joist at 4146 (316 out from the wall, clear of the 220 cornice), so the winch rope goes straight up, leaning out about 170 over the drop. The two double pulleys are turned about 22 degrees to face each other.
+
 ## Still to measure
 
 Defaults, plan-scaled figures or photo estimates are in use for all of these.
@@ -241,5 +257,5 @@ Defaults, plan-scaled figures or photo estimates are in use for all of these.
 - Radiator sizes and positions in every room (estimated from photos).
 - Furniture: width, depth and height of each piece, and where it sits (distance from two walls), most usefully the sofa, coffee table, TV unit, bed, wardrobes and desk.
 - Bedroom 2: light switch position (for the airer winch), and the airer's raised and lowered heights.
-- Bedroom 2 ceiling joists: which way they run, and where the nearest ones are to the two airer pulley points and to the ceiling above the winch (tap test, or a strong magnet slid across the ceiling to find the lath nail lines).
+- Bedroom 2 ceiling joists: they run along the room (confirmed); their positions are estimated. Find the two nearest the lounge wall, about 316 and 682 out from it (tap test, or a strong magnet slid across the ceiling to find the lath nail lines), and confirm with a pilot hole before fixing the pulleys.
 - Lounge: the record cabinet's real width (700 assumed so the turntable and amplifier fit side by side) and the turntable's colour.
