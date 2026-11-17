@@ -200,6 +200,19 @@ As given:
 
 How it was used: confirms the winch position already in the model (on the wall beside the light switch, left of the door as you come in). The rope plan is three pulleys: the kit's single and double over the airer ends, plus one extra Standard Double Pulley (I43) at the ceiling above the winch, so both ropes turn down to the drum together (`products/standard-double-pulley.json`). The extra pulley can sit up to a few hundred mm out from the wall to clear the cornice and land on a joist; a timber batten across two joists is the fallback.
 
+## 2026-11-17: airer setup in the model
+
+As given:
+
+> can you add this setup merge and pull and also add your best estimate of where the joists run, show the full setup
+> the pulley should sit between the open door and the lampshade
+
+How it was used:
+
+- The airer is centred between the open door leaf (reaches about x 7950) and the edge of the paper lampshade (about x 9650), at x 8800. Its laths run from about 8050 to 9550, so it clears both by about 100.
+- The three pulleys are in as candidate pieces: the single at the window end (9400, 4400), the double at the door end (8200, 4400), and the extra double above the winch (7400, 4100, 270 out from the wall to clear the cornice). The two ceiling-run pulleys are turned about 21 degrees to face each other. The ropes are drawn through them and down to the winch drum.
+- Joists: **a guess, not measured.** Running across bedroom 2 (along y, from the lounge wall towards the desk wall) at 400 centres, the first 300 in from the hall wall. Reasons: the lounge next door has boards running along x, and boards run across joists; joists usually span a room's shorter way (bedroom 2 is about 2.46 m that way); tenement floors tend to stack, so the joists above are likely the same way as the ones below. Where the first one falls is placed to suit the pulleys; the real positions need finding. With joists running this way and 400 apart, the two airer pulleys 1200 apart can both land on joists by sliding the airer up to 200 along the room, and the pulley above the winch can sit anywhere along its joist.
+
 ## Still to measure
 
 Defaults, plan-scaled figures or photo estimates are in use for all of these.
