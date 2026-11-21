@@ -1380,6 +1380,23 @@ const shapes = {
     part(g, new THREE.MeshStandardMaterial({ color: '#3a7bd5', emissive: '#3a7bd5', emissiveIntensity: 1.5 }), -w + 50, -w + 56, h / 2, h / 2 + 6, d, d + 1);
     return g;
   },
+  coffee(f, M) { // filter coffee machine (Moccamaster style): tank and column at -x, arm over a filter cone, glass jug on a hot plate at +x
+    const g = new THREE.Group(), w = f.w / 2, d = f.d / 2, h = f.h, body = M(f.colour || '#c9ccce', { roughness: 0.25, metalness: f.metalness ?? 0.7 });
+    const black = M('#1c1c1d', { roughness: 0.5 }), clear = new THREE.MeshStandardMaterial({ color: '#dfe9ec', transparent: true, opacity: 0.35, roughness: 0.05 });
+    const tw = Math.min(130, f.w * 0.4), cx = w - Math.min(85, d), r = Math.min(68, d * 0.82);
+    part(g, body, -w, w, 0, 32, -d, d, 8);                              // base
+    part(g, body, -w, -w + tw * 0.85, 32, h * 0.52, -d + 10, d - 10, 6);   // column
+    part(g, clear, -w, -w + tw, h * 0.52, h - 14, -d, d, 4);               // water tank
+    part(g, black, -w + 2, -w + tw - 2, h - 14, h, -d + 2, d - 2, 4);      // tank lid
+    part(g, body, -w + tw - 4, cx + 20, h * 0.8, h * 0.86, -18, 18, 6);   // brew arm
+    cyl(g, black, r * 1.05, r * 0.6, h * 0.22, h * 0.68, cx, 0, false, 32); // filter cone
+    cyl(g, M('#2b2b2b', { roughness: 0.4, metalness: 0.5 }), r * 1.02, r * 1.02, 5, 35, cx, 0, false, 32); // hot plate
+    cyl(g, clear, r * 0.95, r, h * 0.42, 38 + h * 0.21, cx, 0, false, 32); // glass jug
+    cyl(g, M('#3b2416', { roughness: 0.3 }), r * 0.92, r * 0.97, h * 0.1, 38 + h * 0.05, cx, 0, false, 32); // coffee in the jug
+    cyl(g, black, r * 0.75, r * 0.95, 18, 38 + h * 0.42 + 9, cx, 0, false, 32); // jug lid
+    for (const [x, c] of [[-w + 25, '#f2f2f2'], [-w + 55, '#c43a2e']]) part(g, M(c, { roughness: 0.4 }), x - 9, x + 9, 10, 24, d, d + 3); // switches
+    return g;
+  },
   picture(f, M) { // framed picture or mirror on a wall: frame, a mount on larger prints, then the picture or glass slightly proud
     const g = new THREE.Group(), w = f.w / 2, h = f.h, d = f.d / 2, fr = Math.min(40, f.w * 0.1, f.h * 0.1);
     part(g, M(f.colour || '#2a2a2a', { roughness: 0.5, surface: f.material }), -w, w, 0, h, -d, d);
